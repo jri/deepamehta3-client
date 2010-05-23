@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>DeepaMehta 3 v0.3</title>
+        <link rel="stylesheet" href="style/main.css" type="text/css">
+        <!-- jQuery -->
+        <script type="text/javascript" src="script/jquery/jquery-1.4.2.min.js"></script>
+        <script type="text/javascript" src="script/jquery/jquery-ui-1.8.1.custom.min.js"></script>
+        <link rel="stylesheet" href="script/jquery/css/smoothness/jquery-ui-1.8.1.custom.css" type="text/css">
+        <!-- TinyMCE -->
+        <script type="text/javascript" src="script/tiny_mce/tiny_mce.js"></script>
+        <!-- DeepaMehta 3 -->
+        <script type="text/javascript" src="script/deepamehta_service.js"></script>
+        <script type="text/javascript" src="script/ui_helper.js"></script>
+        <script type="text/javascript" src="script/deepamehta3.js"></script>
+        <script type="text/javascript" src="script/canvas.js"></script>
+        <script type="text/javascript" src="script/plugins.js"></script>
+    </head>
+    <body>
+        <div id="upper-toolbar">
+            <form id="search-form">
+                <div id="searchmode_select_placeholder"></div>
+                <span id="search_widget">
+                    <input id="search_field" type="text">
+                </span>
+                <button id="search_button"></button>
+            </form>
+            <div id="create-form">
+                <div id="create-type-menu-placeholder"></div>
+                <button id="create_button"></button>
+            </div>
+            <div id="special_form">
+                <div id="special_select_placeholder"></div>
+            </div>
+        </div>
+        <div id="canvas-panel">
+        </div>
+        <form id="document-form">
+            <div id="detail-panel"></div>
+            <div id="lower-toolbar"></div>
+        </form>
+        <div id="attachment_dialog" title="Upload Attachment">
+            File:
+            <form id="attachment_form" method="post" enctype="multipart/form-data" target="upload-target">
+                <input type="file" name="_attachments" size="60">
+                <input type="hidden" name="_rev" id="attachment_form_rev">
+                <input type="submit" value="Upload">
+            </form>
+        </div>
+        <iframe id="upload-target" name="upload-target"></iframe>
+        <div id="delete_dialog" title="Delete Document?">
+        </div>
+    </body>
+</html>
