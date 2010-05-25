@@ -49,6 +49,12 @@ function DeepaMehtaService(service_uri) {
         request("DELETE", "/relation/" + id)
     }
 
+    // *** Plugins ***
+
+    this.get_plugins = function() {
+        return request("GET", "/plugin")
+    }
+
     // *** Private Helpers ***
 
     function param_list(value_array, param_name) {

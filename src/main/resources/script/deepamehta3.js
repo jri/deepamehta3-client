@@ -4,9 +4,9 @@ var SEARCH_FIELD_WIDTH = 16    // in chars
 var GENERIC_TOPIC_ICON_SRC = "images/gray-dot.png"
 
 var OPEN_LOG_WINDOW = true
-var LOG_PLUGIN_LOADING = false
+var LOG_PLUGIN_LOADING = true
 var LOG_IMAGE_LOADING = false
-var LOG_AJAX_REQUESTS = true
+var LOG_AJAX_REQUESTS = false
 
 var dms = new DeepaMehtaService(SERVICE_URI)
 var ui = new UIHelper()
@@ -64,6 +64,7 @@ $(document).ready(function() {
     // Note: in order to let a plugin DOM manipulate the GUI
     // the plugins must be loaded _after_ the GUI is set up.
     // alert("Plugins:\n" + plugin_sources.join("\n"))
+    get_plugins()
     load_plugins()
     //
     trigger_hook("init")
@@ -543,6 +544,20 @@ function javascript_source(source_path) {
 }
 
 /**************************************** Helper ****************************************/
+
+// Adds server-side plugins to the list of plugins to load at client-side
+function get_plugins() {
+    var plugins = dms.get_plugins()
+    if (LOG_PLUGIN_LOADING) log("Plugins installed at server-side: " + plugins.length)
+    for (var i = 0, plugin; plugin = plugins[i]; i++) {
+        if (plugin.plugin_file) {
+            if (LOG_PLUGIN_LOADING) log("..... plugin \"" + plugin.plugin_id + "\" contains client-side parts -- to be loaded")
+            add_plugin("/" + plugin.plugin_id + "/script/" + plugin.plugin_file)
+        } else {
+            if (LOG_PLUGIN_LOADING) log("..... plugin \"" + plugin.plugin_id + "\" contains no client-side parts -- nothing to load")
+        }
+    }
+}
 
 function load_plugins() {
     // 1) load plugins

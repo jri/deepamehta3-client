@@ -33,7 +33,7 @@
                 <configuration>
                     <instructions>
                         <Export-Package></Export-Package>
-                        <Bundle-Activator>de.deepamehta.client.osgi.Activator</Bundle-Activator>
+                        <Bundle-Activator>de.deepamehta.core.plugin.DeepaMehtaPlugin</Bundle-Activator>
                     </instructions>
                 </configuration>
             </plugin>
