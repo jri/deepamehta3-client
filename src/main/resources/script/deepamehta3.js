@@ -40,7 +40,6 @@ if (OPEN_LOG_WINDOW) {
 doctype_implementation("script/plain_document.js")
 add_plugin("script/dm3_fulltext.js")
 add_plugin("script/dm3_datafields.js")
-add_plugin("script/dm3_types.js")
 add_plugin("script/dm3_tinymce.js")
 // css_stylesheet("style/main.css")     // layout flatters while loading
 
@@ -60,6 +59,8 @@ $(document).ready(function() {
     log("Detail panel width: " + detail_panel_width)
     //
     canvas = new Canvas()
+    //
+    load_types()
     //
     // Note: in order to let a plugin DOM manipulate the GUI
     // the plugins must be loaded _after_ the GUI is set up.
@@ -544,6 +545,14 @@ function javascript_source(source_path) {
 }
 
 /**************************************** Helper ****************************************/
+
+function load_types() {
+    var type_ids = dms.get_topic_type_ids()
+    for (var i = 0, type_id; type_id = type_ids[i]; i++) {
+        var type = dms.get_topic_type(type_id)
+        add_topic_type(type_id, type)
+    }
+}
 
 // Adds server-side plugins to the list of plugins to load at client-side
 function get_plugins() {

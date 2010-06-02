@@ -1,6 +1,6 @@
 function DeepaMehtaService(service_uri) {
 
-    // *** Topics ***
+    // --- Topics ---
 
     this.get_topic = function(topic_id) {
         return request("GET", "/topic/" + topic_id)
@@ -33,7 +33,7 @@ function DeepaMehtaService(service_uri) {
         request("DELETE", "/topic/" + id)
     }
 
-    // *** Relations ***
+    // --- Relations ---
 
     this.get_relation = function(topic1_id, topic2_id) {
         var query_string = "?src=" + topic1_id + "&dst=" + topic2_id
@@ -49,13 +49,23 @@ function DeepaMehtaService(service_uri) {
         request("DELETE", "/relation/" + id)
     }
 
-    // *** Plugins ***
+    // --- Types ---
+
+    this.get_topic_type_ids = function() {
+        return request("GET", "/topictype")
+    }
+
+    this.get_topic_type = function(type_id) {
+        return request("GET", "/topictype/" + type_id)
+    }
+
+    // --- Plugins ---
 
     this.get_plugins = function() {
         return request("GET", "/plugin")
     }
 
-    // *** Private Helpers ***
+    // --- Private Helpers ---
 
     function param_list(value_array, param_name) {
         for (var i = 0; i < value_array.length; i++) {
