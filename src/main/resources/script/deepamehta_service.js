@@ -21,8 +21,7 @@ function DeepaMehtaService(service_uri) {
     }
 
     this.create_topic = function(topic) {
-        var response = request("POST", "/topic", topic)
-        return response.topic_id
+        return request("POST", "/topic", topic)
     }
 
     this.set_topic_properties = function(topic) {

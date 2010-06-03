@@ -303,9 +303,7 @@ function create_topic_from_menu() {
  */
 function create_topic(type_id, properties) {
     var topic = create_raw_topic(type_id, properties)
-    var topic_id = dms.create_topic(topic)
-    topic.id = topic_id
-    return topic
+    return dms.create_topic(topic)
 }
 
 /**
