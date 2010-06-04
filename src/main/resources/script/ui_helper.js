@@ -27,20 +27,14 @@ function UIHelper() {
         if (button.length == 0) {
             button = $("<button>").attr("id", id)
         }
-        button.addClass("ui-state-default").addClass("ui-corner-all")
         // Note: type="button" is required. Otherwise the button acts as submit button (if contained in a form)
+        // Update: type="button" moved to index.html because attr("type", ...) throws in jQuery 1.4
         // Note: pseudo-attribute "submit" TODO: explain
-        button.attr({type: "button", submit: is_submit})
+        button.attr({submit: is_submit}).click(handler)
+        button.button({label: label})
         if (icon) {
-            var icon_span = $("<span>").addClass("ui-icon").addClass("ui-icon-" + icon)
-            if (label) {
-                icon_span.css({"float": "left", "margin-right": "5px"})
-            }
-            button.append(icon_span)
+            button.button("option", "icons", {primary: "ui-icon-" + icon})
         }
-        button.append(label)
-        button.click(handler)
-        add_hover_effect(button)
         return button
     }
 
@@ -252,12 +246,9 @@ function UIHelper() {
 
             function build_button() {
                 // Note: type="button" is required. Otherwise the button acts as submit button (if contained in a form)
-                button = $("<button>").attr({type: "button"}).addClass("ui-state-default").click(button_clicked)
-                var icon_span = $("<span>").addClass("ui-icon").addClass("ui-icon-triangle-1-s")
-                icon_span.css({"float": "right", "margin-left": "5px"})
-                button.append(icon_span)
-                button.append("<span></span>")  // the 2nd span holds the menu title
-                add_hover_effect(button)
+                // Update: type="button" moved into element because attr("type", ...) is ignored in jQuery 1.4/Safari
+                button = $("<button type='button'>").click(button_clicked)
+                button.button({icons: {primary: "ui-icon-triangle-1-s"}})
                 // set button label
                 if (menu_title) {
                     set_button_label(menu_title)
@@ -265,7 +256,7 @@ function UIHelper() {
             }
 
             function set_button_label(label) {
-                $("span:eq(1)", button).text(label)
+                button.button("option", "label", label)
             }
 
             function button_clicked() {

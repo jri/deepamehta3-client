@@ -4,9 +4,10 @@ var SEARCH_FIELD_WIDTH = 16    // in chars
 var GENERIC_TOPIC_ICON_SRC = "images/gray-dot.png"
 
 var OPEN_LOG_WINDOW = true
-var LOG_PLUGIN_LOADING = true
+var LOG_PLUGIN_LOADING = false
 var LOG_IMAGE_LOADING = false
 var LOG_AJAX_REQUESTS = false
+var LOG_GUI = false
 
 var dms = new DeepaMehtaService(SERVICE_URI)
 var ui = new UIHelper()
@@ -47,12 +48,12 @@ $(document).ready(function() {
     // --- setup GUI ---
     $("#upper-toolbar").addClass("ui-widget-header").addClass("ui-corner-all")
     // the search form
-    $("#searchmode_select_placeholder").replaceWith(searchmode_select())
+    $("#searchmode-select-placeholder").replaceWith(searchmode_select())
     $("#search_field").attr({size: SEARCH_FIELD_WIDTH})
     $("#search-form").submit(search)
-    ui.button("search_button", search, "Search", "gear")
+    ui.button("search-button", search, "Search", "gear")
     // the special form
-    $("#special_select_placeholder").replaceWith(create_special_select())
+    $("#special-select-placeholder").replaceWith(create_special_select())
     // the document form
     $("#document-form").submit(submit_document)
     detail_panel_width = $("#detail-panel").width()
@@ -72,10 +73,10 @@ $(document).ready(function() {
     //
     // the create form
     $("#create-type-menu-placeholder").replaceWith(create_type_menu("create-type-menu").dom)
-    ui.button("create_button", create_topic_from_menu, "Create", "plus")
+    ui.button("create-button", create_topic_from_menu, "Create", "plus")
     //
-    ui.menu("searchmode_select", searchmode_selected)
-    ui.menu("special_select", special_selected, undefined, "Special")
+    ui.menu("searchmode-select", searchmode_selected)
+    ui.menu("special-select", special_selected, undefined, "Special")
     //
     $(window).resize(window_resized)
     $(window).load(function() {
@@ -187,7 +188,7 @@ function searchmode_selected(menu_item) {
 function search() {
     try {
         //
-        var searchmode = ui.menu_item("searchmode_select").label
+        var searchmode = ui.menu_item("searchmode-select").label
         var result_doc = trigger_hook("search", searchmode)[0]
         //
         show_document(result_doc.id)
@@ -667,7 +668,7 @@ function document_exists(doc_id) {
 // --- GUI ---
 
 function searchmode_select() {
-    return $("<select>").attr("id", "searchmode_select")
+    return $("<select>").attr("id", "searchmode-select")
 }
 
 function create_type_menu(menu_id, handler) {
@@ -686,7 +687,7 @@ function rebuild_type_menu(menu_id) {
 }
 
 function create_special_select() {
-    return $("<select>").attr("id", "special_select")
+    return $("<select>").attr("id", "special-select")
 }
 
 //
@@ -1013,7 +1014,12 @@ function log(text) {
 // === Text Utilities ===
 
 function render_text(text) {
-    return text.replace(/\n/g, "<br>")
+    // Note: numbers (e.g. timestamp properties) can't be replaced
+    if (typeof(text) == "string") {
+        return text.replace(/\n/g, "<br>")
+    } else {
+        return text
+    }
 }
 
 /**

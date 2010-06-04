@@ -18,6 +18,9 @@ function dm3_datafields() {
             switch (field.view.editor) {
             case "single line":
             case "multi line":
+                if (!doc.properties[field.id]) {
+                    alert("WARNING: Data field \"" + field.id + "\" has no value. Topic:\n" + JSON.stringify(doc))
+                }
                 return render_text(doc.properties[field.id])
             default:
                 alert("render_field_content: unexpected field editor (" + field.view.editor + ")")

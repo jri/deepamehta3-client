@@ -4,7 +4,7 @@ function dm3_fulltext() {
     css_stylesheet("style/search_result.css")
 
     this.init = function() {
-        $("#searchmode_select").append($("<option>").text("By Text"))
+        $("#searchmode-select").append($("<option>").text("By Text"))
     }
 
     this.search_widget = function(searchmode) {
