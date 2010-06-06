@@ -16,7 +16,7 @@ function dm3_fulltext() {
     this.search = function(searchmode) {
         if (searchmode == "By Text") {
             var searchterm = $.trim($("#search_field").val())
-            return dms.fulltext_search("search", searchterm)
+            return dms.search_topics("search", searchterm)
         }
     }
 }

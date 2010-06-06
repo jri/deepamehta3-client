@@ -31,7 +31,7 @@ function dm3_datafields() {
         case "relation":
             switch (field.view.editor) {
             case "checkboxes":
-                return render_topics(rel_topics)
+                return render_topic_list(rel_topics)
             }
         }
     }

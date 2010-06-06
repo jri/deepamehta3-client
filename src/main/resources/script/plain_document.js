@@ -80,7 +80,7 @@ PlainDocument.prototype = {
             //
             PlainDocument.prototype.render_field_name("Relations (" + topics.length + ")")
             var field_value = $("<div>").addClass("field-value")
-            field_value.append(render_topics(topics))
+            field_value.append(render_topic_list(topics))
             $("#detail-panel").append(field_value)
         }
 
@@ -278,7 +278,7 @@ PlainDocument.prototype = {
             if (searchterm) {
                 // --- trigger search for each fulltext index ---
                 for (var i = 0, index; index = field.view.autocomplete_indexes[i]; i++) {
-                    var result = dms.fulltext_search(index, searchterm + "*")
+                    var result = dms.search_topics(index, searchterm + "*")
                     //
                     if (result.rows.length && !autocomplete_items.length) {
                         PlainDocument.prototype.show_autocomplete_list(this)

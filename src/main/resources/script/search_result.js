@@ -16,7 +16,7 @@ SearchResult.prototype = {
         var heading = "Search Result " + doc.fields[0].content + " (" + doc.items.length + " documents)"
         $("#detail-panel").append($("<div>").addClass("result-heading").text(heading))
         // result items
-        $("#detail-panel").append(render_topics(doc.items, this.render_function()))
+        $("#detail-panel").append(render_topic_list(doc.items, this.render_function()))
     },
 
     context_menu_items: function() {

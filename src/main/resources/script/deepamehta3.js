@@ -189,9 +189,9 @@ function search() {
     try {
         //
         var searchmode = ui.menu_item("searchmode-select").label
-        var result_doc = trigger_hook("search", searchmode)[0]
+        var search_topic = trigger_hook("search", searchmode)[0]
         //
-        show_document(result_doc.id)
+        show_document(search_topic.id)
         add_topic_to_canvas(current_doc)
     } catch (e) {
         alert("Error while searching: " + JSON.stringify(e))
@@ -737,7 +737,7 @@ function add_topic_to_canvas(topic) {
 /**
  * @param   topics      Topics to render (array of Topic objects).
  */
-function render_topics(topics, render_function) {
+function render_topic_list(topics, render_function) {
     render_function = render_function || render_topic
     //
     var table = $("<table>")
@@ -747,7 +747,9 @@ function render_topics(topics, render_function) {
         icon_td.append(render_topic_anchor(topic, type_icon_tag(topic.type_id, "type-icon")))
         // label
         var topic_td = $("<td>").addClass("topic-label").addClass(i == topics.length - 1 ? "last-topic" : undefined)
-        topic_td.append(render_function(topic))
+        var list_item = render_function(topic)
+        trigger_hook("render_topic_list_item", topic, list_item)
+        topic_td.append(list_item)
         //
         table.append($("<tr>").append(icon_td).append(topic_td))
     }
@@ -1014,12 +1016,12 @@ function log(text) {
 // === Text Utilities ===
 
 function render_text(text) {
-    // Note: numbers (e.g. timestamp properties) can't be replaced
-    if (typeof(text) == "string") {
-        return text.replace(/\n/g, "<br>")
-    } else {
+    // Note: string values are expected
+    if (typeof(text) != "string") {
+        alert("WARNING: " + text + " is not a string, but a " + typeof(text))
         return text
     }
+    return text.replace(/\n/g, "<br>")
 }
 
 /**

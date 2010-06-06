@@ -14,10 +14,10 @@ function DeepaMehtaService(service_uri) {
         return request("GET", "/topic/" + topic_id + "/related_topics" + query_string)
     }
 
-    // FIXME: this service call should be provided by the dm3_fulltext plugin
-    this.fulltext_search = function(index, text) {
-        var query_string = "?search=" + text
-        return request("GET", "/topic" + query_string)
+    // FIXME: index parameter not used
+    this.search_topics = function(index, text, field_id, whole_word) {
+        var params = {search: text, field: field_id, wholeword: whole_word}
+        return request("GET", "/topic?" + query_string(params))
     }
 
     this.create_topic = function(topic) {
@@ -69,6 +69,17 @@ function DeepaMehtaService(service_uri) {
     function param_list(value_array, param_name) {
         for (var i = 0; i < value_array.length; i++) {
             value_array[i] = param_name + "=" + value_array[i]
+        }
+        return value_array.join("&")
+    }
+
+    function query_string(params) {
+        var value_array = []
+        var i = 0
+        for (var key in params) {
+            if (params[key]) {
+                value_array[i++] = key + "=" + params[key]
+            }
         }
         return value_array.join("&")
     }
