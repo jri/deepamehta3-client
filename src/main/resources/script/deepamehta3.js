@@ -3,7 +3,7 @@ var SERVICE_URI = "/rest"
 var SEARCH_FIELD_WIDTH = 16    // in chars
 var GENERIC_TOPIC_ICON_SRC = "images/gray-dot.png"
 
-var OPEN_LOG_WINDOW = true
+var OPEN_LOG_WINDOW = false
 var LOG_PLUGIN_LOADING = false
 var LOG_IMAGE_LOADING = false
 var LOG_AJAX_REQUESTS = false
@@ -26,7 +26,6 @@ var css_stylesheets = []
 var topic_types = {}        // key: Type ID, value: type definition (object with "fields", "view", and "implementation" attributes)
 var topic_type_icons = {}   // key: Type ID, value: icon (JavaScript Image object)
 var generic_topic_icon = create_image(GENERIC_TOPIC_ICON_SRC)
-topic_type_icons["Search Result"] = create_image("images/bucket.png")
 
 // log window
 if (OPEN_LOG_WINDOW) {
@@ -320,64 +319,6 @@ function create_raw_topic(type_id, properties) {
 }
 
 /**
- * Returns topics by ID list. Optionally filtered by topic type.
- *
- * @param   doc_ids         Array of topic IDs.
- * @param   type_filter     Optional: a topic type, e.g. "Note", "Workspace".
- *
- * @return  Array of Topic objects.
- */
-function get_topics(doc_ids, type_filter) {
-    var rows = dms.view("deepamehta3/topics", null, doc_ids).rows
-    //
-    if (type_filter) {
-        filter(rows, function(row) {
-            return row.value.topic_type == type_filter
-        })
-    }
-    //
-    var topics = []
-    for (var i = 0, row; row = rows[i]; i++) {
-        topics.push(new Topic(row.id, row.value.topic_type, row.value.topic_label))
-    }
-    //
-    return topics
-}
-
-/**
- * Returns topics by type.
- *
- * @param   type_filter     A topic type, e.g. "Note", "Workspace".
- *
- * @return  Array of Topic objects.
- */
-function get_topics_by_type(type_filter) {
-    var rows = dms.view("deepamehta3/by_type", {key: type_filter}).rows
-    //
-    var topics = []
-    for (var i = 0, row; row = rows[i]; i++) {
-        topics.push(new Topic(row.id, row.key, row.value))
-    }
-    //
-    return topics
-}
-
-/**
- * Returns all relations of the document. Optionally including auxiliary relations.
- * Hint: Auxialiary relations are not part of the knowledge base but help to visualize / navigate result sets.
- *
- * @return  Array of CouchDB view rows: id=relation ID, key=doc_id (the argument), value={rel_doc_id: , rel_doc_pos:, rel_type:}
- */
-function get_related_topics(doc_id, include_auxiliary) {
-    if (include_auxiliary) {
-        var options = {startkey: [doc_id, 0], endkey: [doc_id, 1]}
-    } else {
-        var options = {key: [doc_id, 0]}
-    }
-    return dms.view("deepamehta3/related_topics", options).rows
-}
-
-/**
  * Deletes a topic (including its relations) from the DB and from the GUI.
  */
 function delete_topic(topic_id) {
@@ -483,20 +424,6 @@ function get_relation_doc(doc1_id, doc2_id, rel_type) {
             "doc1=" + doc1_id + "\ndoc2=" + doc2_id + "\n(rel_type=" + rel_type + ")")
     }
     return dms.get_topic(rows[0].id)
-}
-
-/**
- * Returns the IDs of all relations of the document. SEARCH_RESULT relations are NOT included.
- *
- * @return  Array of relation IDs.
- */
-function related_doc_ids(doc_id) {
-    var rows = get_related_topics(doc_id)
-    var rel_doc_ids = []
-    for (var i = 0, row; row = rows[i]; i++) {
-        rel_doc_ids.push(row.value.rel_doc_id)
-    }
-    return rel_doc_ids
 }
 
 /**
@@ -624,7 +551,7 @@ function trigger_hook(hook_name) {
                 var res = plugin[hook_name](arguments[1], arguments[2], arguments[3])
             } else {
                 alert("ERROR at trigger_hook: too much arguments (" +
-                    (arguments.length - 1) + "), maximum is 2.\nhook=" + hook_name)
+                    (arguments.length - 1) + "), maximum is 3.\nhook=" + hook_name)
             }
             // 2) Store result
             // Note: undefined is not added to the result, but null is.
@@ -764,7 +691,7 @@ function render_topic(topic) {
 }
 
 /**
-* @param   topic       Topic to render (a Topic object).
+ * @param   topic       Topic to render (a Topic object).
  */
 function render_topic_anchor(topic, anchor_content) {
     return $("<a>").attr({href: ""}).append(anchor_content).click(function() {
@@ -796,10 +723,8 @@ function image_tag(src, css_class) {
  * @return  The icon source (string).
  */
 function get_icon_src(type) {
-    if (type == "Workspace") {
-        return "vendor/dm3-workspaces/images/star.png"  // ### TODO: make Workspace a regular type
     // Note: topic_types[type] is undefined if plugin is deactivated and content still exist.
-    } else if (topic_types[type] && topic_types[type].view && topic_types[type].view.icon_src) {
+    if (topic_types[type] && topic_types[type].view && topic_types[type].view.icon_src) {
         return topic_types[type].view.icon_src
     } else {
         return GENERIC_TOPIC_ICON_SRC
@@ -1131,4 +1056,10 @@ function create_image_tracker(callback_func) {
 
 function notify_image_trackers() {
     image_tracker && image_tracker.check()
+}
+
+// === Cookie Support ===
+
+function store_cookie(key, value) {
+    document.cookie = key + "=" + value + ";path=" + SERVICE_URI
 }

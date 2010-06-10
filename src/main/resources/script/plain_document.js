@@ -72,7 +72,7 @@ PlainDocument.prototype = {
         }
 
         function render_relations() {
-            var topics = dms.get_related_topics(doc.id, [])
+            var topics = dms.get_related_topics(doc.id)
             // don't render topics already rendered via "defined relations"
             substract(topics, PlainDocument.prototype.defined_relation_topics, function(topic, drt) {
                 return topic.id == drt.id
@@ -175,13 +175,12 @@ PlainDocument.prototype = {
     },
 
     /**
-     * Returns topics of a "relation" field.
+     * Returns topics of a data field of type "relation".
      *
      * @return  Array of Topic objects.
      */
-    get_related_topics: function(doc_id, field) {
-        var doc_ids = related_doc_ids(doc_id)
-        return get_topics(doc_ids, field.model.related_type)
+    get_related_topics: function(topic_id, field) {
+        return dms.get_related_topics(topic_id, [field.model.related_type_id])    // FIXME: exclude "SEARCH_RESULT"
     },
 
     /* ---------------------------------------- Private Methods ---------------------------------------- */

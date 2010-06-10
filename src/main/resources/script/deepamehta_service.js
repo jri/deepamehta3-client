@@ -6,18 +6,25 @@ function DeepaMehtaService(service_uri) {
         return request("GET", "/topic/" + topic_id)
     }
 
-    this.get_related_topics = function(topic_id, exclude_rel_types) {
-        var query_string = ""
-        if (exclude_rel_types) {
-            query_string = "?" + param_list(exclude_rel_types, "exclude")
-        }
-        return request("GET", "/topic/" + topic_id + "/related_topics" + query_string)
+    this.get_topics = function(type_id) {
+        return request("GET", "/topic/by_type/" + type_id)
+    }
+
+    /**
+     * @param   include_topic_types     topic type filter (optional)
+     * @param   exclude_rel_types       relation type filter (optional)
+     */
+    this.get_related_topics = function(topic_id, include_topic_types, exclude_rel_types) {
+        var params = new RequestParameter()
+        params.add_list("include_topic_types", include_topic_types)
+        params.add_list("exclude_rel_types", exclude_rel_types)
+        return request("GET", "/topic/" + topic_id + "/related_topics" + params.to_query_string())
     }
 
     // FIXME: index parameter not used
     this.search_topics = function(index, text, field_id, whole_word) {
-        var params = {search: text, field: field_id, wholeword: whole_word}
-        return request("GET", "/topic?" + query_string(params))
+        var params = new RequestParameter({search: text, field: field_id, wholeword: whole_word})
+        return request("GET", "/topic" + params.to_query_string())
     }
 
     this.create_topic = function(topic) {
@@ -35,8 +42,8 @@ function DeepaMehtaService(service_uri) {
     // --- Relations ---
 
     this.get_relation = function(topic1_id, topic2_id) {
-        var query_string = "?src=" + topic1_id + "&dst=" + topic2_id
-        return request("GET", "/relation" + query_string)
+        var params = new RequestParameter({src: topic1_id, dst: topic2_id})
+        return request("GET", "/relation" + params.to_query_string())
     }
 
     this.create_relation = function(relation) {
@@ -65,24 +72,6 @@ function DeepaMehtaService(service_uri) {
     }
 
     // --- Private Helpers ---
-
-    function param_list(value_array, param_name) {
-        for (var i = 0; i < value_array.length; i++) {
-            value_array[i] = param_name + "=" + value_array[i]
-        }
-        return value_array.join("&")
-    }
-
-    function query_string(params) {
-        var value_array = []
-        var i = 0
-        for (var key in params) {
-            if (params[key]) {
-                value_array[i++] = key + "=" + params[key]
-            }
-        }
-        return value_array.join("&")
-    }
 
     function request(method, uri, data) {
         var status              // "success" if request was successful
@@ -120,6 +109,39 @@ function DeepaMehtaService(service_uri) {
             return responseData
         } else {
             throw "AJAX request failed: " + responseCode + " " + responseMessage + " (exception: " + exception + ")"
+        }
+    }
+
+    function RequestParameter(params) {
+        
+        var param_array = []
+
+        if (params && !params.length) {
+            for (var key in params) {
+                if (params[key]) {
+                    add(key, params[key])
+                }
+            }
+        }
+
+        this.add = function(param_name, value) {
+            param_array.push(param_name + "=" + value)
+        }
+
+        this.add_list = function(param_name, value_list) {
+            if (value_list) {
+                for (var i = 0; i < value_list.length; i++) {
+                    this.add(param_name, value_list[i])
+                }
+            }
+        }
+
+        this.to_query_string = function() {
+            var query_string = param_array.join("&")
+            if (query_string) {
+                query_string = "?" + query_string
+            }
+            return query_string
         }
     }
 }

@@ -81,7 +81,7 @@ function dm3_datafields() {
         function render_relation_field(field, doc, rel_topics) {
             switch (field.view.editor) {
             case "checkboxes":
-                var topics = get_topics_by_type(field.model.related_type)
+                var topics = dms.get_topics(field.model.related_type_id)
                 var relation_div = $("<div>")
                 for (var i = 0, topic; topic = topics[i]; i++) {
                     var attr = {type: "checkbox", id: topic.id, name: "relation_" + field.id}
