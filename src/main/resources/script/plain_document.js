@@ -45,15 +45,18 @@ PlainDocument.prototype = {
                 if (html != undefined) {
                     $("#detail-panel").append($("<div>").addClass("field-value").append(html))
                 } else {
-                    alert("ERROR at PlainDocument.render_document: field \"" + field.id + "\" not handled by any plugin.\n" +
-                        "field model=" + JSON.stringify(field.model) + "\nfield view=" + JSON.stringify(field.view))
+                    alert("WARNING (PlainDocument.render_document):\n" +
+                        "field \"" + field.id + "\" of topic " + doc.id + " is not handled by any plugin.\n" +
+                        "field model=" + JSON.stringify(field.model) + "\n" +
+                        "field view=" + JSON.stringify(field.view))
                 }
             }
 
             function related_topics(field) {
                 if (field.model.type == "relation") {
                     var topics = PlainDocument.prototype.get_related_topics(doc.id, field)
-                    PlainDocument.prototype.defined_relation_topics = PlainDocument.prototype.defined_relation_topics.concat(topics)
+                    PlainDocument.prototype.defined_relation_topics =
+                        PlainDocument.prototype.defined_relation_topics.concat(topics)
                     return topics
                 }
             }
@@ -107,8 +110,10 @@ PlainDocument.prototype = {
                 $("#detail-panel").append($("<div>").addClass("field-value").append(html))
                 trigger_hook("post_render_form_field", field, topic)
             } else {
-                alert("ERROR at PlainDocument.render_form: field \"" + field.id + "\" not handled by any plugin.\n" +
-                    "field model=" + JSON.stringify(field.model) + "\nfield view=" + JSON.stringify(field.view))
+                alert("WARNING (PlainDocument.render_form):\n" +
+                    "field \"" + field.id + "\" of topic " + topic.id + " is not handled by any plugin.\n" +
+                    "field model=" + JSON.stringify(field.model) + "\n" +
+                    "field view=" + JSON.stringify(field.view))
             }
         }
 
@@ -193,14 +198,16 @@ PlainDocument.prototype = {
             var content = trigger_hook("get_field_content", field, current_doc)[0]
             // Note: undefined content is an error (means: field type not handled by any plugin).
             // null is a valid hook result (means: plugin prevents the field from being updated).
-            // typeof is required because null==undefined !
+            // typeof is required because null==undefined (Firefox 2)!
             if (typeof(content) != "undefined") {
                 if (content != null) {
                     current_doc.properties[field.id] = content
                 }
             } else {
-                alert("ERROR at PlainDocument.update_document: field \"" + field.id + "\" not handled by any plugin.\n" +
-                    "field model=" + JSON.stringify(field.model) + "\nfield view=" + JSON.stringify(field.view))
+                alert("WARNING (PlainDocument.update_document):\n" +
+                    "field \"" + field.id + "\" of topic " + current_doc.id + " is not handled by any plugin.\n" +
+                    "field model=" + JSON.stringify(field.model) + "\n" +
+                    "field view=" + JSON.stringify(field.view))
             }
         }
         // update DB
@@ -261,8 +268,8 @@ PlainDocument.prototype = {
         }
         // assertion
         if (this.id.substr(0, 6) != "field_") {
-            alert("ERROR at PlainDocument.autocomplete: document " + current_doc.id + "\n" +
-                "has unexpected element id (" + this.id + ").\n" +
+            alert("WARNING (PlainDocument.autocomplete):\n" +
+                "document " + current_doc.id + " has unexpected element id (" + this.id + ").\n" +
                 "It is expected to begin with \"field_\"")
             return
         }

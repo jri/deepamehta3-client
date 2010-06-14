@@ -114,6 +114,7 @@ function dm3_datafields() {
             return update_relation_field(field, doc)
         }
 
+        // TODO: updating relation fields should run at server-side (in a transaction)
         function update_relation_field(field, doc) {
             switch (field.view.editor) {
             case "checkboxes":
@@ -131,7 +132,7 @@ function dm3_datafields() {
                             }
                         } else {
                             if (was_checked_before) {
-                                delete_relation(get_relation_doc(doc.id, checkbox.id).id)
+                                delete_relation(dms.get_relation(doc.id, checkbox.id).id)
                             }
                         }
                     }

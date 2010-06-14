@@ -383,50 +383,6 @@ function create_raw_relation(type_id, src_topic_id, dst_topic_id, properties) {
 }
 
 /**
- * Returns relations by ID list.
- *
- * @param   rel_ids         Array of relation IDs.
- *
- * @return  Array of Relation objects
- */
-function get_relations(rel_ids) {
-    var rows = dms.view("deepamehta3/relations", null, rel_ids).rows
-    //
-    var relations = []
-    for (var i = 0, row; row = rows[i]; i++) {
-        relations.push(new Relation(row.id, row.value.rel_type, row.value.doc1_id, row.value.doc2_id))
-    }
-    //
-    return relations
-}
-
-/**
- * Returns the relation between the two documents. Optionally filtered by relation type.
- * If no such relation exists nothing is returned (undefined).
- * If more than one relation matches, only the first one is returned.
- *
- * @return  The relation, a CouchDB document.
- */
-function get_relation_doc(doc1_id, doc2_id, rel_type) {
-    if (rel_type) {
-        var options = {key: [doc1_id, doc2_id, rel_type]}
-    } else {
-        var options = {startkey: [doc1_id, doc2_id], endkey: [doc1_id, doc2_id, {}]}
-    }
-    //
-    var rows = dms.view("deepamehta3/relation_undirected", options).rows
-    //
-    if (rows.length == 0) {
-        return
-    }
-    if (rows.length > 1) {
-        alert("get_relation_doc: there are " + rows.length + " relations between the two docs (1 is expected)\n" +
-            "doc1=" + doc1_id + "\ndoc2=" + doc2_id + "\n(rel_type=" + rel_type + ")")
-    }
-    return dms.get_topic(rows[0].id)
-}
-
-/**
  * Deletes a relation from the DB, and from the view (canvas).
  * Note: the canvas view and the detail panel are not refreshed.
  */
@@ -1060,6 +1016,6 @@ function notify_image_trackers() {
 
 // === Cookie Support ===
 
-function store_cookie(key, value) {
+function set_cookie(key, value) {
     document.cookie = key + "=" + value + ";path=" + SERVICE_URI
 }

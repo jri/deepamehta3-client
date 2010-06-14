@@ -11,8 +11,8 @@ function DeepaMehtaService(service_uri) {
     }
 
     /**
-     * @param   include_topic_types     topic type filter (optional)
-     * @param   exclude_rel_types       relation type filter (optional)
+     * @param   include_topic_types     Optional: topic type filter (array of topic type names).
+     * @param   exclude_rel_types       Optional: relation type filter (array of relation type names).
      */
     this.get_related_topics = function(topic_id, include_topic_types, exclude_rel_types) {
         var params = new RequestParameter()
@@ -41,8 +41,15 @@ function DeepaMehtaService(service_uri) {
 
     // --- Relations ---
 
-    this.get_relation = function(topic1_id, topic2_id) {
-        var params = new RequestParameter({src: topic1_id, dst: topic2_id})
+    /**
+     * Returns the relation between the two topics.
+     * If no such relation exists nothing is returned (undefined). FIXME: check this.
+     * If more than one relation matches, only the first one is returned.
+     *
+     * @return  The relation (a Relation object). FIXME: check this.
+     */
+    this.get_relation = function(src_topic_id, dst_topic_id) {
+        var params = new RequestParameter({src: src_topic_id, dst: dst_topic_id})
         return request("GET", "/relation" + params.to_query_string())
     }
 
@@ -117,21 +124,21 @@ function DeepaMehtaService(service_uri) {
         var param_array = []
 
         if (params && !params.length) {
-            for (var key in params) {
-                if (params[key]) {
-                    add(key, params[key])
+            for (var param_name in params) {
+                if (params[param_name]) {
+                    add(param_name, params[param_name])
                 }
             }
         }
 
         this.add = function(param_name, value) {
-            param_array.push(param_name + "=" + value)
+            add(param_name, value)
         }
 
         this.add_list = function(param_name, value_list) {
             if (value_list) {
                 for (var i = 0; i < value_list.length; i++) {
-                    this.add(param_name, value_list[i])
+                    add(param_name, value_list[i])
                 }
             }
         }
@@ -142,6 +149,10 @@ function DeepaMehtaService(service_uri) {
                 query_string = "?" + query_string
             }
             return query_string
+        }
+
+        function add(param_name, value) {
+            param_array.push(param_name + "=" + value)
         }
     }
 }
