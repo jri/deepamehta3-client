@@ -54,7 +54,7 @@ PlainDocument.prototype = {
 
             function related_topics(field) {
                 if (field.model.type == "relation") {
-                    var topics = PlainDocument.prototype.get_related_topics(doc.id, field)
+                    var topics = PlainDocument.prototype.get_relation_field_content(doc.id, field)
                     PlainDocument.prototype.defined_relation_topics =
                         PlainDocument.prototype.defined_relation_topics.concat(topics)
                     return topics
@@ -75,7 +75,7 @@ PlainDocument.prototype = {
         }
 
         function render_relations() {
-            var topics = dms.get_related_topics(doc.id)
+            var topics = dms.get_related_topics(doc.id, [], ["SEARCH_RESULT;OUTGOING"])
             // don't render topics already rendered via "defined relations"
             substract(topics, PlainDocument.prototype.defined_relation_topics, function(topic, drt) {
                 return topic.id == drt.id
@@ -119,7 +119,7 @@ PlainDocument.prototype = {
 
         function related_topics(field) {
             if (field.model.type == "relation") {
-                var topics = PlainDocument.prototype.get_related_topics(topic.id, field)
+                var topics = PlainDocument.prototype.get_relation_field_content(topic.id, field)
                 // buffer current topic selection to compare it at submit time
                 PlainDocument.prototype.topic_buffer[field.id] = topics
                 //
@@ -180,12 +180,12 @@ PlainDocument.prototype = {
     },
 
     /**
-     * Returns topics of a data field of type "relation".
+     * Returns the content of a field of type "relation".
      *
      * @return  Array of Topic objects.
      */
-    get_related_topics: function(topic_id, field) {
-        return dms.get_related_topics(topic_id, [field.model.related_type_id])    // FIXME: exclude "SEARCH_RESULT"
+    get_relation_field_content: function(topic_id, field) {
+        return dms.get_related_topics(topic_id, [field.model.related_type_id], ["SEARCH_RESULT"])
     },
 
     /* ---------------------------------------- Private Methods ---------------------------------------- */
