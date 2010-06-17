@@ -115,7 +115,7 @@ function DeepaMehtaService(service_uri) {
         if (status == "success") {
             return responseData
         } else {
-            throw "AJAX request failed: " + responseCode + " " + responseMessage + " (exception: " + exception + ")"
+            throw "AJAX request failed (" + responseCode + "): " + responseMessage + " (exception: " + exception + ")"
         }
     }
 
