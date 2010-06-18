@@ -1,4 +1,4 @@
-function DeepaMehtaService(service_uri) {
+function DeepaMehtaService(core_service_uri) {
 
     // --- Topics ---
 
@@ -14,9 +14,10 @@ function DeepaMehtaService(service_uri) {
      * @param   include_topic_types     Optional: topic type filter (array of topic type names).
      * @param   exclude_rel_types       Optional: relation type filter (array of relation type names).
      */
-    this.get_related_topics = function(topic_id, include_topic_types, exclude_rel_types) {
+    this.get_related_topics = function(topic_id, include_topic_types, include_rel_types, exclude_rel_types) {
         var params = new RequestParameter()
         params.add_list("include_topic_types", include_topic_types)
+        params.add_list("include_rel_types", include_rel_types)
         params.add_list("exclude_rel_types", exclude_rel_types)
         return request("GET", "/topic/" + topic_id + "/related_topics" + params.to_query_string())
     }
@@ -78,20 +79,37 @@ function DeepaMehtaService(service_uri) {
         return request("GET", "/plugin")
     }
 
+    /**
+     * Sends an AJAX request. The URI is interpreted as an absolute URI.
+     *
+     * This utility method is called by plugins who register additional REST resources at an individual
+     * namespace (server-side) and add corresponding service calls to the REST client instance.
+     * For example, see the DeepaMehta 3 Topicmaps plugin.
+     */
+    this.request = function(method, uri, data) {
+        return request(method, uri, data, true)
+    }
+
     // --- Private Helpers ---
 
-    function request(method, uri, data) {
-        var status              // "success" if request was successful
-        var responseCode        // HTTP response code, e.g. 304
-        var responseMessage     // HTTP response message, e.g. "Not Modified"
-        var responseData        // in case of successful request: the response data (response body)
-        var exception           // in case of unsuccessful request: possibly an exception
+    /**
+     * Sends an AJAX request.
+     *
+     * @param   is_absolute_uri     If true, the URI is interpreted as relative to the DeepaMehta core service URI.
+     *                              If false, the URI is interpreted as an absolute URI.
+     */
+    function request(method, uri, data, is_absolute_uri) {
+        var status                  // "success" if request was successful
+        var responseCode            // HTTP response code, e.g. 304
+        var responseMessage         // HTTP response message, e.g. "Not Modified"
+        var responseData            // in case of successful request: the response data (response body)
+        var exception               // in case of unsuccessful request: possibly an exception
         //
         if (LOG_AJAX_REQUESTS) log(method + " " + uri + "\n..... " + JSON.stringify(data))
         //
         $.ajax({
             type: method,
-            url: service_uri + uri,
+            url: is_absolute_uri ? uri : core_service_uri + uri,
             contentType: "application/json",
             data: JSON.stringify(data),
             processData: false,

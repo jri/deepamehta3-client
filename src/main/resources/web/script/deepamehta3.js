@@ -1,5 +1,5 @@
 // Settings
-var SERVICE_URI = "/rest"
+var CORE_SERVICE_URI = "/core"
 var SEARCH_FIELD_WIDTH = 16    // in chars
 var GENERIC_TOPIC_ICON_SRC = "images/gray-dot.png"
 
@@ -9,7 +9,7 @@ var LOG_IMAGE_LOADING = false
 var LOG_AJAX_REQUESTS = false
 var LOG_GUI = false
 
-var dms = new DeepaMehtaService(SERVICE_URI)
+var dms = new DeepaMehtaService(CORE_SERVICE_URI)
 var ui = new UIHelper()
 
 var current_doc         // topic document being displayed, or null if no one is currently displayed (a CouchDB document)
@@ -23,7 +23,8 @@ var doctype_impl_sources = []
 var doctype_impls = {}
 var css_stylesheets = []
 //
-var topic_types = {}        // key: Type ID, value: type definition (object with "fields", "view", and "implementation" attributes)
+var topic_types = {}        // key: Type ID, value: type definition
+                            //                      (object with "fields", "view", and "implementation" attributes)
 var topic_type_icons = {}   // key: Type ID, value: icon (JavaScript Image object)
 var generic_topic_icon = create_image(GENERIC_TOPIC_ICON_SRC)
 
@@ -1017,5 +1018,5 @@ function notify_image_trackers() {
 // === Cookie Support ===
 
 function set_cookie(key, value) {
-    document.cookie = key + "=" + value + ";path=" + SERVICE_URI
+    document.cookie = key + "=" + value + ";path=" + CORE_SERVICE_URI
 }
