@@ -3,7 +3,7 @@ var CORE_SERVICE_URI = "/core"
 var SEARCH_FIELD_WIDTH = 16    // in chars
 var GENERIC_TOPIC_ICON_SRC = "images/gray-dot.png"
 
-var OPEN_LOG_WINDOW = false
+var OPEN_LOG_WINDOW = true
 var LOG_PLUGIN_LOADING = false
 var LOG_IMAGE_LOADING = false
 var LOG_AJAX_REQUESTS = false
@@ -295,24 +295,24 @@ function create_topic_from_menu() {
 }
 
 /**
- * Creates a topic and stores it in the DB.
+ * Builds a topic and stores it in the DB.
  *
- * @param   type_id         The type ID, e.g. "Note".
+ * @param   type_id         The topic type ID, e.g. "Note".
  * @param   properties      Optional: topic properties (object, key: field ID, value: content).
  *
  * @return  The topic as stored in the DB.
  */
 function create_topic(type_id, properties) {
-    var topic = create_raw_topic(type_id, properties)
+    var topic = build_topic(type_id, properties)
     return dms.create_topic(topic)
 }
 
 /**
- * Creates a topic in memory.
+ * Builds and returns a topic object.
  *
- * @return  The topic.
+ * @return  The topic object.
  */
-function create_raw_topic(type_id, properties) {
+function build_topic(type_id, properties) {
     return {
         type_id: type_id,
         properties: properties || {}
@@ -355,26 +355,24 @@ function hide_topic(topic_id) {
 
 
 /**
- * Creates a relation document and stores it in the DB.
+ * Builds a relation and stores it in the DB.
  *
- * @param   type_id             The relation type, e.g. "RELATION", "SEARCH_RESULT".
+ * @param   type_id             The relation type ID, e.g. "RELATION", "SEARCH_RESULT".
  * @param   properties          Optional: relation properties (object, key: field ID, value: content).
  *
- * @return  The created relation.
+ * @return  The relation as stored in the DB.
  */
 function create_relation(type_id, src_topic_id, dst_topic_id, properties) {
-    var relation = create_raw_relation(type_id, src_topic_id, dst_topic_id, properties)
-    var relation_id = dms.create_relation(relation)
-    relation.id = relation_id
-    return relation
+    var relation = build_relation(type_id, src_topic_id, dst_topic_id, properties)
+    return dms.create_relation(relation)
 }
 
 /**
- * Creates a relation in memory.
+ * Builds and returns a relation object.
  *
- * @return  The relation.
+ * @return  The relation object.
  */
-function create_raw_relation(type_id, src_topic_id, dst_topic_id, properties) {
+function build_relation(type_id, src_topic_id, dst_topic_id, properties) {
     return {
         type_id: type_id,
         src_topic_id: src_topic_id,
@@ -572,37 +570,6 @@ function rebuild_type_menu(menu_id) {
 
 function create_special_select() {
     return $("<select>").attr("id", "special-select")
-}
-
-//
-
-/**
- * Creates a search result topic.
- *
- * @param   title               The title of the search result.
- * @param   result              The search result: either
- *                              1) a CouchDB view result (array of row objects),
- *                              2) a fulltext result (array of row objects),
- *                              3) an array of Topic objects.
- * @param   doctype_impl        The result topic's document type implementation.
- * @param   result_function     Optional: a function that transforms a result row into a result item.
- *                              A result item object must at least contain the attributes "id", "type", and "label".
- *                              If not specified, the result objects are expected to be valid result items already.
- *
- * @return  the result topic (a CouchDB document of type "Search Result")
- */
-function create_result_topic(title, result, doctype_impl, result_function) {
-    // create result topic
-    var fields = [{id: "Title", content: '"' + title + '"'}]
-    var view = {icon_src: "images/bucket.png"}
-    var result_topic = create_raw_topic("Search Result", fields, view, doctype_impl)
-    // add result items
-    result_topic.items = []
-    for (var i = 0, row; row = result[i]; i++) {
-        result_topic.items.push(result_function && result_function(row) || row)
-    }
-    //
-    return result_topic
 }
 
 //

@@ -211,7 +211,7 @@ PlainDocument.prototype = {
             }
         }
         // update DB
-        dms.set_topic_properties(current_doc)
+        dms.set_topic_properties(current_doc.id, current_doc.properties)
         // update GUI
         var topic_id = current_doc.id
         var label = topic_label(current_doc)

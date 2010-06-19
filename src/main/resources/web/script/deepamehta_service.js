@@ -32,8 +32,8 @@ function DeepaMehtaService(core_service_uri) {
         return request("POST", "/topic", topic)
     }
 
-    this.set_topic_properties = function(topic) {
-        request("PUT", "/topic/" + topic.id, topic.properties)
+    this.set_topic_properties = function(topic_id, properties) {
+        request("PUT", "/topic/" + topic_id, properties)
     }
 
     this.delete_topic = function(id) {
@@ -55,8 +55,11 @@ function DeepaMehtaService(core_service_uri) {
     }
 
     this.create_relation = function(relation) {
-        var response = request("POST", "/relation", relation)
-        return response.relation_id
+        return request("POST", "/relation", relation)
+    }
+
+    this.set_relation_properties = function(relation_id, properties) {
+        request("PUT", "/relation/" + relation_id, properties)
     }
 
     this.delete_relation = function(id) {
