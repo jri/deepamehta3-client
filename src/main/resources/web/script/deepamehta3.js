@@ -865,12 +865,7 @@ function log(text) {
 // === Text Utilities ===
 
 function render_text(text) {
-    // Note: string values are expected
-    if (typeof(text) != "string") {
-        alert("WARNING: " + text + " is not a string, but a " + typeof(text))
-        return text
-    }
-    return text.replace(/\n/g, "<br>")
+    return text.replace ? text.replace(/\n/g, "<br>") : text
 }
 
 /**

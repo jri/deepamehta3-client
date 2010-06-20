@@ -1,6 +1,6 @@
 /**
  * DeepaMehta 3 core plugin.
- * Handles data fields of type "text", "date", and "relation".
+ * Handles data fields of type "text", "number", "date", and "relation".
  */
 function dm3_datafields() {
 
@@ -26,6 +26,8 @@ function dm3_datafields() {
                 alert("render_field_content: unexpected field editor (" + field.view.editor + ")")
             }
             break
+        case "number":
+            return doc.properties[field.id]
         case "date":
             return format_date(doc.properties[field.id])
         case "relation":
@@ -41,6 +43,8 @@ function dm3_datafields() {
         switch (field.model.type) {
         case "text":
             return render_text_field(field)
+        case "number":
+            return render_number_field(field)
         case "date":
             return render_date_field(field)
         case "relation":
@@ -50,7 +54,7 @@ function dm3_datafields() {
         function render_text_field(field) {
             switch (field.view.editor) {
             case "single line":
-                var input = $("<input>").attr({type: "text", id: "field_" + field.id, value: doc.properties[field.id], size: DEFAULT_FIELD_WIDTH})
+                var input = render_input()
                 if (field.view.autocomplete_indexes) {
                     input.keyup(PlainDocument.prototype.autocomplete)
                     input.blur(PlainDocument.prototype.lost_focus)
@@ -59,10 +63,16 @@ function dm3_datafields() {
                 return input
             case "multi line":
                 var lines = field.view.lines || DEFAULT_AREA_HEIGHT
-                return $("<textarea>").attr({id: "field_" + field.id, rows: lines, cols: DEFAULT_FIELD_WIDTH}).text(doc.properties[field.id])
+                return $("<textarea>").attr({
+                    id: "field_" + field.id, rows: lines, cols: DEFAULT_FIELD_WIDTH
+                }).text(doc.properties[field.id])
             default:
                 alert("render_text_field: unexpected field editor (" + field.view.editor + ")")
             }
+        }
+
+        function render_number_field(field) {
+            return render_input()
         }
 
         function render_date_field(field) {
@@ -95,6 +105,14 @@ function dm3_datafields() {
                 return relation_div
             }
         }
+
+        // --- Helper ---
+
+        function render_input() {
+            return $("<input>").attr({
+                type: "text", id: "field_" + field.id, value: doc.properties[field.id], size: DEFAULT_FIELD_WIDTH
+            })
+        }
     }
 
     this.get_field_content = function(field, doc) {
@@ -108,6 +126,14 @@ function dm3_datafields() {
                 alert("get_field_content: unexpected field editor (" + field.view.editor + ")")
             }
             break
+        case "number":
+            var val = $("#field_" + field.id).val()
+            var content = Number(val)
+            if (isNaN(content)) {
+                alert("WARNING: " + val + " is not a number (field \"" + field.id + "\"). The old value is restored.")
+                return null     // prevent this field from being updated
+            }
+            return content
         case "date":
             return $("#field_" + field.id).val()
         case "relation":
