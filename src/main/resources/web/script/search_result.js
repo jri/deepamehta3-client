@@ -1,3 +1,5 @@
+// FIXME: not in use. File to be dropped.
+
 function SearchResult() {
 }
 
@@ -39,6 +41,6 @@ SearchResult.prototype = {
     /* Context Menu Commands */
 
     remove: function() {
-        delete_topic(current_doc.id)
+        delete_topic(selected_topic.id)
     }
 }

@@ -154,11 +154,11 @@ PlainDocument.prototype = {
     /* Context Menu Commands */
 
     hide: function() {
-        hide_topic(current_doc.id)
+        hide_topic(selected_topic.id)
     },
 
     relate: function(event) {
-        canvas.begin_relation(current_doc.id, event)
+        canvas.begin_relation(selected_topic.id, event)
     },
 
     /* Helper */
@@ -192,29 +192,29 @@ PlainDocument.prototype = {
 
     update_document: function() {
         //
-        trigger_hook("pre_submit_form", current_doc)
+        trigger_hook("pre_submit_form", selected_topic)
         //
-        for (var i = 0, field; field = get_type(current_doc).fields[i]; i++) {
-            var content = trigger_hook("get_field_content", field, current_doc)[0]
+        for (var i = 0, field; field = get_type(selected_topic).fields[i]; i++) {
+            var content = trigger_hook("get_field_content", field, selected_topic)[0]
             // Note: undefined content is an error (means: field type not handled by any plugin).
             // null is a valid hook result (means: plugin prevents the field from being updated).
             // typeof is required because null==undefined (Firefox 2)!
             if (typeof(content) != "undefined") {
                 if (content != null) {
-                    current_doc.properties[field.id] = content
+                    selected_topic.properties[field.id] = content
                 }
             } else {
                 alert("WARNING (PlainDocument.update_document):\n" +
-                    "field \"" + field.id + "\" of topic " + current_doc.id + " is not handled by any plugin.\n" +
+                    "field \"" + field.id + "\" of topic " + selected_topic.id + " is not handled by any plugin.\n" +
                     "field model=" + JSON.stringify(field.model) + "\n" +
                     "field view=" + JSON.stringify(field.view))
             }
         }
         // update DB
-        dms.set_topic_properties(current_doc.id, current_doc.properties)
+        dms.set_topic_properties(selected_topic.id, selected_topic.properties)
         // update GUI
-        var topic_id = current_doc.id
-        var label = topic_label(current_doc)
+        var topic_id = selected_topic.id
+        var label = topic_label(selected_topic)
         canvas.set_topic_label(topic_id, label)
         canvas.refresh()
         show_document()
@@ -229,8 +229,8 @@ PlainDocument.prototype = {
     /* Attachments */
 
     attach_file: function() {
-        $("#attachment_form").attr("action", dms.uri + current_doc.id)
-        $("#attachment_form_rev").attr("value", current_doc._rev)
+        $("#attachment_form").attr("action", dms.uri + selected_topic.id)
+        $("#attachment_form_rev").attr("value", selected_topic._rev)
         $("#attachment_dialog").dialog("open")
     },
 
@@ -247,7 +247,7 @@ PlainDocument.prototype = {
 
     do_delete: function() {
         $("#delete_dialog").dialog("close")
-        delete_topic(current_doc.id)
+        delete_topic(selected_topic.id)
     },
 
 
@@ -269,7 +269,7 @@ PlainDocument.prototype = {
         // assertion
         if (this.id.substr(0, 6) != "field_") {
             alert("WARNING (PlainDocument.autocomplete):\n" +
-                "document " + current_doc.id + " has unexpected element id (" + this.id + ").\n" +
+                "document " + selected_topic.id + " has unexpected element id (" + this.id + ").\n" +
                 "It is expected to begin with \"field_\"")
             return
         }
@@ -301,7 +301,7 @@ PlainDocument.prototype = {
                         // --- Add item to model ---
                         autocomplete_items.push(item)
                         // --- Add item to view ---
-                        var ac_item = trigger_doctype_hook(current_doc, "render_autocomplete_item", item)
+                        var ac_item = trigger_doctype_hook(selected_topic, "render_autocomplete_item", item)
                         var a = $("<a>").attr({href: "", id: item_id++}).append(ac_item)
                         a.mousemove(PlainDocument.prototype.item_hovered)
                         a.mousedown(PlainDocument.prototype.process_selection)
@@ -365,7 +365,7 @@ PlainDocument.prototype = {
         if (autocomplete_item != -1) {
             var input_element = PlainDocument.prototype.get_input_element()
             // trigger hook to get the item (string) to insert into the input element
-            var item = trigger_doctype_hook(current_doc, "process_autocomplete_selection", autocomplete_items[autocomplete_item])
+            var item = trigger_doctype_hook(selected_topic, "process_autocomplete_selection", autocomplete_items[autocomplete_item])
             //
             var field = PlainDocument.prototype.get_field(input_element)
             if (field.view.autocomplete_style == "item list") {
@@ -401,7 +401,7 @@ PlainDocument.prototype = {
 
     get_field: function(input_element) {
         var field_id = input_element.id.substr(6)            // 6 = "field_".length
-        var field = get_field(current_doc, field_id)
+        var field = get_field(selected_topic, field_id)
         return field
     },
 

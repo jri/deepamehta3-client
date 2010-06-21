@@ -3,7 +3,7 @@ var CORE_SERVICE_URI = "/core"
 var SEARCH_FIELD_WIDTH = 16    // in chars
 var GENERIC_TOPIC_ICON_SRC = "images/gray-dot.png"
 
-var OPEN_LOG_WINDOW = true
+var ENABLE_LOGGING = true
 var LOG_PLUGIN_LOADING = false
 var LOG_IMAGE_LOADING = false
 var LOG_AJAX_REQUESTS = false
@@ -12,7 +12,7 @@ var LOG_GUI = false
 var dms = new DeepaMehtaService(CORE_SERVICE_URI)
 var ui = new UIHelper()
 
-var current_doc         // topic document being displayed, or null if no one is currently displayed (a CouchDB document)
+var selected_topic      // topic document being displayed, or null if no one is currently displayed (a Topic object)
 var current_rel_id      // ID of relation being activated, or null if no one is currently activated
 var canvas              // the canvas that displays the topic map (a Canvas object)
 var is_form_shown       // true if a form is shown (used to fire the "post_submit_form" event)
@@ -29,7 +29,7 @@ var topic_type_icons = {}   // key: Type ID, value: icon (JavaScript Image objec
 var generic_topic_icon = create_image(GENERIC_TOPIC_ICON_SRC)
 
 // log window
-if (OPEN_LOG_WINDOW) {
+if (ENABLE_LOGGING) {
     var log_window = window.open()
 }
 
@@ -192,7 +192,7 @@ function search() {
         var search_topic = trigger_hook("search", searchmode)[0]
         //
         show_document(search_topic.id)
-        add_topic_to_canvas(current_doc)
+        add_topic_to_canvas(selected_topic)
     } catch (e) {
         alert("Error while searching: " + JSON.stringify(e))
     }
@@ -218,21 +218,21 @@ function reveal_topic(topic_id, do_relate) {
     }
     // create relation
     if (do_relate) {
-        var relation = dms.get_relation(current_doc.id, topic_id)
+        var relation = dms.get_relation(selected_topic.id, topic_id)
         if (!relation) {
             alert("reveal_topic(): create SEARCH_RESULT relation")
-            relation = create_relation("SEARCH_RESULT", current_doc.id, topic_id)
+            relation = create_relation("SEARCH_RESULT", selected_topic.id, topic_id)
         }
         canvas.add_relation(relation.id, relation.src_topic_id, relation.dst_topic_id)
     }
     // reveal document
     show_document(topic_id)
-    add_topic_to_canvas(current_doc)
+    add_topic_to_canvas(selected_topic)
     canvas.focus_topic(topic_id)
 }
 
 /**
- * Fetches the document and displays it on the content panel. Updates global state (current_doc),
+ * Fetches the document and displays it on the content panel. Updates global state (selected_topic),
  * provided the document could be fetched successfully.
  * If no document is specified, the current document is re-fetched.
  * If there is no current document the content panel is emptied.
@@ -241,8 +241,8 @@ function reveal_topic(topic_id, do_relate) {
  */
 function show_document(doc_id) {
     if (doc_id == undefined) {
-        if (current_doc) {
-            doc_id = current_doc.id
+        if (selected_topic) {
+            doc_id = selected_topic.id
         } else {
             empty_detail_panel()
             return false
@@ -257,16 +257,16 @@ function show_document(doc_id) {
     //
     empty_detail_panel()
     // update global state
-    current_doc = doc
+    selected_topic = doc
     //
-    trigger_doctype_hook(current_doc, "render_document", current_doc)
+    trigger_doctype_hook(selected_topic, "render_document", selected_topic)
     //
     return true
 }
 
 function edit_document() {
-    trigger_doctype_hook(current_doc,      "render_form", current_doc)
-    trigger_doctype_hook(current_doc, "post_render_form", current_doc)
+    trigger_doctype_hook(selected_topic,      "render_form", selected_topic)
+    trigger_doctype_hook(selected_topic, "post_render_form", selected_topic)
 }
 
 function submit_document() {
@@ -287,9 +287,9 @@ function submit_document() {
 function create_topic_from_menu() {
     // update DB
     var topic_type = ui.menu_item("create-type-menu").label
-    current_doc = create_topic(topic_type)
+    selected_topic = create_topic(topic_type)
     // update GUI
-    add_topic_to_canvas(current_doc)
+    add_topic_to_canvas(selected_topic)
     // initiate editing
     edit_document()
 }
@@ -325,24 +325,26 @@ function build_topic(type_id, properties) {
 function delete_topic(topic_id) {
     // update DB
     dms.delete_topic(topic_id)
+    // trigger hook
+    trigger_hook("post_delete_topic", selected_topic)
     // update GUI
-    hide_topic(topic_id)
+    hide_topic(topic_id, true)
 }
 
 /**
  * Hides a topic (including its relations) from the GUI (canvas & detail panel).
  */
-function hide_topic(topic_id) {
+function hide_topic(topic_id, is_part_of_delete_operation) {
     // canvas
     canvas.remove_all_relations_of_topic(topic_id)
-    canvas.remove_topic(topic_id, true)           // refresh=true
+    canvas.remove_topic(topic_id, true, is_part_of_delete_operation)    // refresh=true
     // detail panel
-    if (topic_id == current_doc.id) {
-        current_doc = null
+    if (topic_id == selected_topic.id) {
+        selected_topic = null
         show_document()
     } else {
         alert("WARNING: removed topic which was not selected\n" +
-            "(removed=" + topic_id + " selected=" + current_doc.id + ")")
+            "(removed=" + topic_id + " selected=" + selected_topic.id + ")")
     }
 }
 
@@ -618,7 +620,7 @@ function render_topic(topic) {
  * @param   topic       Topic to render (a Topic object).
  */
 function render_topic_anchor(topic, anchor_content) {
-    return $("<a>").attr({href: ""}).append(anchor_content).click(function() {
+    return $("<a>").attr({href: "#"}).append(anchor_content).click(function() {
         reveal_topic(topic.id, true)
         return false
     })
@@ -681,7 +683,7 @@ function create_image(src) {
 
 function empty_detail_panel(is_form) {
     if (is_form_shown) {
-        trigger_hook("post_submit_form", current_doc)
+        trigger_hook("post_submit_form", selected_topic)
     }
     is_form_shown = is_form
     //
@@ -853,7 +855,7 @@ function clone(obj) {
 }
 
 function log(text) {
-    if (OPEN_LOG_WINDOW) {
+    if (ENABLE_LOGGING) {
         // Note: the log window might be closed meanwhile,
         // or it might not apened at all due to browser security restrictions.
         if (log_window && log_window.document) {
@@ -931,17 +933,21 @@ function to_binary(str) {
 
 /*** Helper Classes ***/
 
-function Topic(id, type, label) {
+// FIXME: not in use.
+function Topic(id, type_id, label, properties) {
     this.id = id
-    this.type = type
+    this.type_id = type_id
     this.label = label
+    this.properties = properties
 }
 
-function Relation(id, type, doc1_id, doc2_id) {
+// FIXME: not in use.
+function Relation(id, type_id, src_topic_id, dst_topic_id, properties) {
     this.id = id
-    this.type = type
-    this.doc1_id = doc1_id
-    this.doc2_id = doc2_id
+    this.type_id = type_id
+    this.src_topic_id = src_topic_id
+    this.dst_topic_id = dst_topic_id
+    this.properties = properties
 }
 
 // === Image Tracker ===

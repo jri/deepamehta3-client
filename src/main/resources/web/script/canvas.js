@@ -28,7 +28,7 @@ function Canvas() {
     var topic_move_in_progress      // true while topic move is in progress (boolean)
     var canvas_move_in_progress     // true while canvas translation is in progress (boolean)
     var relation_in_progress        // true while new association is pulled (boolean)
-    var action_topic                // topic being moved / related (a CanvasTopic)
+    var action_topic                // the topic being moved / related (a CanvasTopic)
     var tmp_x, tmp_y                // coordinates while action is in progress
     var animation
     var animation_count
@@ -88,7 +88,7 @@ function Canvas() {
         }
     }
 
-    this.remove_topic = function(id, refresh_canvas) {
+    this.remove_topic = function(id, refresh_canvas, is_part_of_delete_operation) {
         var i = topic_index(id)
         // assertion
         if (i == -1) {
@@ -101,6 +101,10 @@ function Canvas() {
         ct.label_div.remove()
         if (refresh_canvas) {
             this.refresh()
+        }
+        // trigger hook
+        if (!is_part_of_delete_operation) {
+            trigger_hook("post_hide_topic_from_canvas", ct)
         }
     }
 
@@ -328,9 +332,9 @@ function Canvas() {
             //
             var ct = topic_by_position(event)
             if (ct) {
-                var rel = create_relation("RELATION", current_doc.id, ct.id)
+                var rel = create_relation("RELATION", selected_topic.id, ct.id)
                 canvas.add_relation(rel.id, rel.src_topic_id, rel.dst_topic_id)
-                select_topic(current_doc.id)
+                select_topic(selected_topic.id)
             } else {
                 draw()
             }
@@ -382,7 +386,7 @@ function Canvas() {
             //
             select_topic(ct.id, true)
             //
-            var items = trigger_doctype_hook(current_doc, "context_menu_items")
+            var items = trigger_doctype_hook(selected_topic, "context_menu_items")
             open_context_menu(items, "topic", event)
         } else {
             var ca = assoc_by_position(event)
@@ -407,7 +411,7 @@ function Canvas() {
         })
         for (var i = 0, item; item = items[i]; i++) {
             var handler = context_menu_handler(type, item.handler)
-            var a = $("<a>").attr("href", "").click(handler).text(item.label)
+            var a = $("<a>").attr("href", "#").click(handler).text(item.label)
             contextmenu.append(a)
         }
         $("#canvas-panel").append(contextmenu)
@@ -416,7 +420,7 @@ function Canvas() {
     function context_menu_handler(type, handler) {
         if (type == "topic") {
             return function(event) {
-                trigger_doctype_hook(current_doc, handler, event)
+                trigger_doctype_hook(selected_topic, handler, event)
                 canvas.close_context_menu()
                 return false
             }
@@ -554,7 +558,7 @@ function Canvas() {
         $("#canvas-panel").mouseleave(mouseleave)
         cox = canvas_elem.offset().left
         coy = canvas_elem.offset().top
-        log("..... new canvas offset: x=" + cox + " y=" + coy)
+        if (LOG_GUI) log("..... new canvas offset: x=" + cox + " y=" + coy)
         ctx = canvas_elem.get(0).getContext("2d")
         // bind events
         canvas_elem.click(clicked)
@@ -570,8 +574,10 @@ function Canvas() {
         canvas_width = w_w - detail_panel_width - 50    // 35px = 1.2em + 2 * 8px = 19(.2)px + 16px.
                                             // Update: Safari 4 needs 15 extra pixel (for potential vertical scrollbar?)
         canvas_height = w_h - t_h - 76      // was 60, then 67 (healing login dialog), then 76 (healing datepicker)
-        log("Calculating canvas size: window size=" + w_w + "x" + w_h + " toolbar height=" + t_h)
-        log("..... new canvas size=" + canvas_width + "x" + canvas_height)
+        if (LOG_GUI) {
+            log("Calculating canvas size: window size=" + w_w + "x" + w_h + " toolbar height=" + t_h)
+            log("..... new canvas size=" + canvas_width + "x" + canvas_height)
+        }
     }
 
     function translate(tx, ty) {
