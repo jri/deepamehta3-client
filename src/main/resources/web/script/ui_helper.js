@@ -16,22 +16,27 @@ function UIHelper() {
      *          <span>                  - the button's icon (provided it has an icon)
      *          button_label            - the button's label (a text node)
      *
-     * @param   id      ID of the <button> element that is transformed to a jQuery UI button. If no such DOM element exists
-     *                  in the document, a button element is created and the caller is responsible for adding the returned
-     *                  button to the DOM tree.
+     * @param   id      ID of the <button> element that is transformed to a jQuery UI button. If no such DOM element
+     *                  exists in the document, a button element is created and the caller is responsible for adding
+     *                  the returned button to the DOM tree.
      *
      * @return          The button (a jQuery object).
      */
     this.button = function(id, handler, label, icon, is_submit) {
         var button = $("#" + id)
         if (button.length == 0) {
-            button = $("<button>").attr("id", id)
+            // Note: type="button" is required. Otherwise the button acts as submit button (if contained in a form).
+            // Update: type="button" moved into element because attr("type", ...) is ignored in jQuery 1.4/Safari.
+            button = $("<button type='button'>").attr("id", id)
         }
-        // Note: type="button" is required. Otherwise the button acts as submit button (if contained in a form)
-        // Update: type="button" moved to index.html because attr("type", ...) throws in jQuery 1.4
         // Note: pseudo-attribute "submit" TODO: explain
         button.attr({submit: is_submit}).click(handler)
-        button.button({label: label})
+        button.button()
+        if (label) {
+            button.button("option", "label", label)
+        } else {
+            button.button("option", "text", false)
+        }
         if (icon) {
             button.button("option", "icons", {primary: "ui-icon-" + icon})
         }
@@ -61,11 +66,13 @@ function UIHelper() {
      *              <a>             - a menu item
      *
      * The menu's DOM structure is accessible through the menu's "dom" attribute (a jQuery object).
-     * Note: the top-level container's id attribute allows easy DOM selection of the menu, e.g. to replace it with another menu.
+     * Note: the top-level container's id attribute allows easy DOM selection of the menu, e.g. to replace it with
+     * another menu.
      *
      * @param   menu_id     The menu ID. Can be used later on to identify the menu, e.g. for adding items to it.
      *                      If a DOM element with such an ID exists it is replaced by the menu.
-     *                      If no such DOM element exists, the caller is responsible for adding the menu to the DOM tree.
+     *                      If no such DOM element exists, the caller is responsible for adding the menu to the
+     *                      DOM tree.
      * @param   handler     Optional: The callback function. 2 arguments are passed to it:
      *                      1) The selected menu item (an object with "value" and "label" elements).
      *                      2) The menu ID.
@@ -76,10 +83,11 @@ function UIHelper() {
      *                      Its <option> elements are taken as menu items.
      * @param   menu_title  Optional: The menu title (string).
      *                      If specified a stateless action-trigger menu with a static menu title is created.
-     *                      If not specified a stateful select-like menu is created with the selected item as "menu title".
+     *                      If not specified a stateful select-like menu is created with the selected item as
+     *                      "menu title".
      *
-     * @return              The created menu (a Menu object). The caller can add the menu to the page by accessing the menu's
-     *                      "dom" attribute (a jQuery object).
+     * @return              The created menu (a Menu object). The caller can add the menu to the page by accessing the
+     *                      menu's "dom" attribute (a jQuery object).
      */
     this.menu = function(menu_id, handler, items, menu_title) {
 
@@ -90,7 +98,8 @@ function UIHelper() {
             // Model
             // Note: the surrounding "menu_id", "handler", "items", and "menu_title" are also part of the menu's model.
             var stateful = !menu_title
-            var selection   // selected item (object with "value" and "label" elements). Used only for stateful select-like menus.
+            var selection   // selected item (object with "value" and "label" elements). Used only for stateful
+                            // select-like menus.
 
             // GUI
             var menu        // the actual menu (jQuery <div> object)
@@ -101,8 +110,8 @@ function UIHelper() {
             // because adding menu items might affect the button label (in case of a stateful select-like menu).
             build_button()
             build_menu()
-            // Note: the button must be added to the page _after_ the menu ís build
-            // because the menu might rely on the placeholder element (in case the menu is build from a <select> element).
+            // Note: the button must be added to the page _after_ the menu ís build because the menu might rely on the
+            // placeholder element (in case the menu is build from a <select> element).
             add_to_page()
 
             /****************************** "Public" API ******************************/
@@ -111,7 +120,8 @@ function UIHelper() {
              * @param   item    The menu item to add. An object with this elements:
              *                      "label" - The label to be displayed in the menu.
              *                      "value" - Optional: the value to be examined by the caller.
-             *                          Note: if this item is about to be selected programatically the value must be specified.
+             *                          Note: if this item is about to be selected programatically the value must be
+             *                          specified.
              *                      "icon" - Optional: the icon to decorate the item (relative or absolute URL).
              *                      "is_trigger" (boolean) - Optional: if true this item acts as stateless
              *                          action-trigger within an stateful select-like menu. Default is false.
@@ -176,7 +186,7 @@ function UIHelper() {
                 items.push(item)
                 // 2) update GUI
                 var item_id = items.length - 1
-                var anchor = $("<a>").attr({href: "", id: anchor_id(item_id)}).click(item_selected)
+                var anchor = $("<a>").attr({href: "#", id: anchor_id(item_id)}).click(item_selected)
                 if (item.icon) {
                     anchor.append(image_tag(item.icon, "menu-icon"))
                 }
@@ -245,8 +255,8 @@ function UIHelper() {
             /****************************** The Button ******************************/
 
             function build_button() {
-                // Note: type="button" is required. Otherwise the button acts as submit button (if contained in a form)
-                // Update: type="button" moved into element because attr("type", ...) is ignored in jQuery 1.4/Safari
+                // Note: type="button" is required. Otherwise the button acts as submit button (if contained in a form).
+                // Update: type="button" moved into element because attr("type", ...) is ignored in jQuery 1.4/Safari.
                 button = $("<button type='button'>").click(button_clicked)
                 button.button({icons: {primary: "ui-icon-triangle-1-s"}})
                 // set button label

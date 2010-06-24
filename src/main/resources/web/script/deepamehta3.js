@@ -701,10 +701,14 @@ function render_object(object) {
     return table
 }
 
-//
+// --- Types ---
 
 function get_type(topic) {
     return topic_types[topic.type_id]
+}
+
+function get_topic_type(type_topic) {
+    return topic_types[type_topic.properties.type_id]
 }
 
 function get_field(doc, field_id) {
@@ -723,11 +727,15 @@ function get_field_index(doc, field_id) {
     }
 }
 
+function add_field(type_id, field) {
+    topic_types[type_id].fields.push(field)
+}
+
 function remove_field(doc, field_id) {
     var i = get_field_index(doc, field_id)
     // error check 1
     if (i == undefined) {
-        alert("ERROR at remove_field: field with ID \"" + field_id +
+        alert("ERROR (remove_field): field with ID \"" + field_id +
             "\" not found in fields " + JSON.stringify(doc.fields))
         return
     }
@@ -735,11 +743,13 @@ function remove_field(doc, field_id) {
     doc.fields.splice(i, 1)
     // error check 2
     if (get_field_index(doc, field_id) >= 0) {
-        alert("ERROR at remove_field: more than one field with ID \"" +
+        alert("ERROR (remove_field): more than one field with ID \"" +
             field_id + "\" found")
         return
     }
 }
+
+// ---
 
 function get_value(doc, field_id) {
     return get_field(doc, field_id).content

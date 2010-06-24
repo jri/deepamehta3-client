@@ -7,11 +7,15 @@ function PlainDocument() {
     DELETE_DIALOG_WIDTH = 350   // in pixel
 
     // The upload dialog
-    $("#attachment_dialog").dialog({modal: true, autoOpen: false, draggable: false, resizable: false, width: UPLOAD_DIALOG_WIDTH})
+    $("#attachment_dialog").dialog({
+        modal: true, autoOpen: false, draggable: false, resizable: false, width: UPLOAD_DIALOG_WIDTH
+    })
     $("#upload-target").load(this.upload_complete)
     // The delete dialog
-    $("#delete_dialog").dialog({modal: true, autoOpen: false, draggable: false, resizable: false, width: DELETE_DIALOG_WIDTH,
-        buttons: {"Delete": this.do_delete}})
+    $("#delete_dialog").dialog({
+        modal: true, autoOpen: false, draggable: false, resizable: false, width: DELETE_DIALOG_WIDTH,
+        buttons: {"Delete": this.do_delete}
+    })
     // The autocomplete list
     $("#document-form").append($("<div>").addClass("autocomplete-list"))
     autocomplete_item = -1
@@ -132,7 +136,7 @@ PlainDocument.prototype = {
         // buttons
         $("#lower-toolbar").append("<button id='save-button'>")
         $("#lower-toolbar").append("<button id='cancel-button'>")
-        ui.button("save-button", this.update_document, "Save", "circle-check", true)
+        ui.button("save-button", this.do_update_document, "Save", "circle-check", true)
         ui.button("cancel-button", this.cancel_editing, "Cancel")
     },
 
@@ -190,7 +194,11 @@ PlainDocument.prototype = {
 
     /* ---------------------------------------- Private Methods ---------------------------------------- */
 
-    update_document: function() {
+    /**
+     * Invoked when the user presses the "Save" button.
+     */
+    do_update_document: function() {
+        log("UPDATING")
         //
         trigger_hook("pre_submit_form", selected_topic)
         //
@@ -204,7 +212,7 @@ PlainDocument.prototype = {
                     selected_topic.properties[field.id] = content
                 }
             } else {
-                alert("WARNING (PlainDocument.update_document):\n" +
+                alert("WARNING (PlainDocument.do_update_document):\n" +
                     "field \"" + field.id + "\" of topic " + selected_topic.id + " is not handled by any plugin.\n" +
                     "field model=" + JSON.stringify(field.model) + "\n" +
                     "field view=" + JSON.stringify(field.view))
@@ -365,12 +373,14 @@ PlainDocument.prototype = {
         if (autocomplete_item != -1) {
             var input_element = PlainDocument.prototype.get_input_element()
             // trigger hook to get the item (string) to insert into the input element
-            var item = trigger_doctype_hook(selected_topic, "process_autocomplete_selection", autocomplete_items[autocomplete_item])
+            var item = trigger_doctype_hook(selected_topic, "process_autocomplete_selection",
+                autocomplete_items[autocomplete_item])
             //
             var field = PlainDocument.prototype.get_field(input_element)
             if (field.view.autocomplete_style == "item list") {
-                var term = PlainDocument.prototype.current_term(input_element)  // term[0]: the term to replace, starts immediately after the comma
-                                                                                // term[1]: position of the previous comma or -1
+                // term[0]: the term to replace, starts immediately after the comma
+                // term[1]: position of the previous comma or -1
+                var term = PlainDocument.prototype.current_term(input_element)
                 var value = input_element.value
                 input_element.value = value.substring(0, term[1] + 1)
                 if (term[1] + 1 > 0) {

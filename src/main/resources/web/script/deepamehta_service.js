@@ -76,6 +76,14 @@ function DeepaMehtaService(core_service_uri) {
         return request("GET", "/topictype/" + type_id)
     }
 
+    this.add_data_field = function(type_id, field) {
+        return request("POST", "/topictype/" + type_id, field)
+    }
+
+    this.update_data_field = function(type_id, field) {
+        return request("PUT", "/topictype/" + type_id, field)
+    }
+
     // --- Plugins ---
 
     this.get_plugins = function() {
