@@ -1,4 +1,4 @@
-function DeepaMehtaService(core_service_uri) {
+function DeepaMehtaClient(core_service_uri) {
 
     // --- Topics ---
 
@@ -82,6 +82,10 @@ function DeepaMehtaService(core_service_uri) {
 
     this.update_data_field = function(type_id, field) {
         return request("PUT", "/topictype/" + type_id, field)
+    }
+
+    this.remove_data_field = function(type_id, field_id) {
+        return request("DELETE", "/topictype/" + type_id + "/field/" + field_id)
     }
 
     // --- Plugins ---

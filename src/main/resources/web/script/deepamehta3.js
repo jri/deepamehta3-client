@@ -9,7 +9,7 @@ var LOG_IMAGE_LOADING = false
 var LOG_AJAX_REQUESTS = false
 var LOG_GUI = false
 
-var dms = new DeepaMehtaService(CORE_SERVICE_URI)
+var dmc = new DeepaMehtaClient(CORE_SERVICE_URI)
 var ui = new UIHelper()
 
 var selected_topic      // topic document being displayed, or null if no one is currently displayed (a Topic object)
@@ -86,7 +86,7 @@ $(document).ready(function() {
 
 // --- CouchDB API extensions ---
 
-dms.openAttachment = function(docId, attachment_name) {
+dmc.openAttachment = function(docId, attachment_name) {
     this.last_req = this.request("GET", this.uri + encodeURIComponent(docId) + "/" + attachment_name)
     if (this.last_req.status == 404)
         return null
@@ -94,7 +94,7 @@ dms.openAttachment = function(docId, attachment_name) {
     return this.last_req.responseText
 }
 
-dms.openBinaryAttachment = function(docId, attachment_name) {
+dmc.openBinaryAttachment = function(docId, attachment_name) {
     this.last_req = request("GET", this.uri + encodeURIComponent(docId) + "/" + attachment_name)
     if (this.last_req.status == 404)
         return null
@@ -116,7 +116,7 @@ dms.openBinaryAttachment = function(docId, attachment_name) {
 }
 
 // FIXME: doesn't work. Binary data gets corrupted while PUT.
-/* dms.saveBinaryAttachmentAJAX = function(doc, attachment_name, attachment_data) {
+/* dmc.saveBinaryAttachmentAJAX = function(doc, attachment_name, attachment_data) {
     var result = $.ajax({
         async: false,
         contentType: mime_type(attachment_name),
@@ -132,7 +132,7 @@ dms.openBinaryAttachment = function(docId, attachment_name) {
 
 // FIXME: doesn't work. Binary data gets corrupted while PUT.
 // xhr.sendAsBinary() is probably the solution, but exists only in Firefox 3.
-/* dms.saveBinaryAttachment = function(doc, attachment_name, attachment_data) {
+/* dmc.saveBinaryAttachment = function(doc, attachment_name, attachment_data) {
     var url = this.uri + encodeURIComponent(doc.id) + "/" + attachment_name + "?rev=" + doc._rev
     var binary_data = to_binary(attachment_data)
     var headers = {
@@ -218,7 +218,7 @@ function reveal_topic(topic_id, do_relate) {
     }
     // create relation
     if (do_relate) {
-        var relation = dms.get_relation(selected_topic.id, topic_id)
+        var relation = dmc.get_relation(selected_topic.id, topic_id)
         if (!relation) {
             alert("reveal_topic(): create SEARCH_RESULT relation")
             relation = create_relation("SEARCH_RESULT", selected_topic.id, topic_id)
@@ -249,7 +249,7 @@ function show_document(doc_id) {
         }
     }
     // fetch document
-    var doc = dms.get_topic(doc_id)
+    var doc = dmc.get_topic(doc_id)
     //
     if (doc == null) {
         return false
@@ -304,7 +304,7 @@ function create_topic_from_menu() {
  */
 function create_topic(type_id, properties) {
     var topic = build_topic(type_id, properties)
-    return dms.create_topic(topic)
+    return dmc.create_topic(topic)
 }
 
 /**
@@ -324,7 +324,7 @@ function build_topic(type_id, properties) {
  */
 function delete_topic(topic_id) {
     // update DB
-    dms.delete_topic(topic_id)
+    dmc.delete_topic(topic_id)
     // trigger hook
     trigger_hook("post_delete_topic", selected_topic)
     // update GUI
@@ -366,7 +366,7 @@ function hide_topic(topic_id, is_part_of_delete_operation) {
  */
 function create_relation(type_id, src_topic_id, dst_topic_id, properties) {
     var relation = build_relation(type_id, src_topic_id, dst_topic_id, properties)
-    return dms.create_relation(relation)
+    return dmc.create_relation(relation)
 }
 
 /**
@@ -389,7 +389,7 @@ function build_relation(type_id, src_topic_id, dst_topic_id, properties) {
  */
 function delete_relation(rel_id) {
     // update DB
-    dms.delete_relation(rel_id)
+    dmc.delete_relation(rel_id)
     // update GUI
     canvas.remove_relation(rel_id)
 }
@@ -430,16 +430,16 @@ function javascript_source(source_path) {
 /**************************************** Helper ****************************************/
 
 function load_types() {
-    var type_ids = dms.get_topic_type_ids()
+    var type_ids = dmc.get_topic_type_ids()
     for (var i = 0, type_id; type_id = type_ids[i]; i++) {
-        var type = dms.get_topic_type(type_id)
+        var type = dmc.get_topic_type(type_id)
         add_topic_type(type_id, type)
     }
 }
 
 // Adds server-side plugins to the list of plugins to load at client-side
 function get_plugins() {
-    var plugins = dms.get_plugins()
+    var plugins = dmc.get_plugins()
     if (LOG_PLUGIN_LOADING) log("Plugins installed at server-side: " + plugins.length)
     for (var i = 0, plugin; plugin = plugins[i]; i++) {
         if (plugin.plugin_file) {
@@ -546,7 +546,7 @@ function call_relation_function(function_name) {
 // --- DB ---
 
 function document_exists(doc_id) {
-    return dms.get_topic(doc_id) != null
+    return dmc.get_topic(doc_id) != null
 }
 
 // --- GUI ---
@@ -711,6 +711,7 @@ function get_topic_type(type_topic) {
     return topic_types[type_topic.properties.type_id]
 }
 
+// FIXME: to be dropped
 function get_field(doc, field_id) {
     for (var i = 0, field; field = get_type(doc).fields[i]; i++) {
         if (field.id == field_id) {
@@ -719,8 +720,8 @@ function get_field(doc, field_id) {
     }
 }
 
-function get_field_index(doc, field_id) {
-    for (var i = 0, field; field = get_type(doc).fields[i]; i++) {
+function get_field_index(topic_type, field_id) {
+    for (var i = 0, field; field = topic_type.fields[i]; i++) {
         if (field.id == field_id) {
             return i
         }
@@ -731,18 +732,19 @@ function add_field(type_id, field) {
     topic_types[type_id].fields.push(field)
 }
 
-function remove_field(doc, field_id) {
-    var i = get_field_index(doc, field_id)
+function remove_field(type_id, field_id) {
+    var topic_type = topic_types[type_id]
+    var i = get_field_index(topic_type, field_id)
     // error check 1
     if (i == undefined) {
         alert("ERROR (remove_field): field with ID \"" + field_id +
-            "\" not found in fields " + JSON.stringify(doc.fields))
+            "\" not found in fields " + JSON.stringify(topic_type.fields))
         return
     }
     //
-    doc.fields.splice(i, 1)
+    topic_type.fields.splice(i, 1)
     // error check 2
-    if (get_field_index(doc, field_id) >= 0) {
+    if (get_field_index(topic_type, field_id) >= 0) {
         alert("ERROR (remove_field): more than one field with ID \"" +
             field_id + "\" found")
         return
@@ -751,6 +753,7 @@ function remove_field(doc, field_id) {
 
 // ---
 
+// FIXME: to be dropped
 function get_value(doc, field_id) {
     return get_field(doc, field_id).content
 }

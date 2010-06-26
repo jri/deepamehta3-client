@@ -71,7 +71,7 @@ PlainDocument.prototype = {
                 PlainDocument.prototype.render_field_name("Attachments")
                 var field_value = $("<div>").addClass("field-value")
                 for (var attach in doc._attachments) {
-                    var a = $("<a>").attr("href", dms.uri + doc.id + "/" + attach).text(attach)
+                    var a = $("<a>").attr("href", dmc.uri + doc.id + "/" + attach).text(attach)
                     field_value.append(a).append("<br>")
                 }
                 $("#detail-panel").append(field_value)
@@ -79,7 +79,7 @@ PlainDocument.prototype = {
         }
 
         function render_relations() {
-            var topics = dms.get_related_topics(doc.id, [], [], ["SEARCH_RESULT;OUTGOING"])
+            var topics = dmc.get_related_topics(doc.id, [], [], ["SEARCH_RESULT;OUTGOING"])
             // don't render topics already rendered via "defined relations"
             substract(topics, PlainDocument.prototype.defined_relation_topics, function(topic, drt) {
                 return topic.id == drt.id
@@ -189,7 +189,7 @@ PlainDocument.prototype = {
      * @return  Array of Topic objects.
      */
     get_relation_field_content: function(topic_id, field) {
-        return dms.get_related_topics(topic_id, [field.model.related_type_id], [], ["SEARCH_RESULT"])
+        return dmc.get_related_topics(topic_id, [field.model.related_type_id], [], ["SEARCH_RESULT"])
     },
 
     /* ---------------------------------------- Private Methods ---------------------------------------- */
@@ -219,7 +219,7 @@ PlainDocument.prototype = {
             }
         }
         // update DB
-        dms.set_topic_properties(selected_topic.id, selected_topic.properties)
+        dmc.set_topic_properties(selected_topic.id, selected_topic.properties)
         // update GUI
         var topic_id = selected_topic.id
         var label = topic_label(selected_topic)
@@ -237,7 +237,7 @@ PlainDocument.prototype = {
     /* Attachments */
 
     attach_file: function() {
-        $("#attachment_form").attr("action", dms.uri + selected_topic.id)
+        $("#attachment_form").attr("action", dmc.uri + selected_topic.id)
         $("#attachment_form_rev").attr("value", selected_topic._rev)
         $("#attachment_dialog").dialog("open")
     },
@@ -292,7 +292,7 @@ PlainDocument.prototype = {
             if (searchterm) {
                 // --- trigger search for each fulltext index ---
                 for (var i = 0, index; index = field.view.autocomplete_indexes[i]; i++) {
-                    var result = dms.search_topics(index, searchterm + "*")
+                    var result = dmc.search_topics(index, searchterm + "*")
                     //
                     if (result.rows.length && !autocomplete_items.length) {
                         PlainDocument.prototype.show_autocomplete_list(this)

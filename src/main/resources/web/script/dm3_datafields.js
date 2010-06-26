@@ -91,7 +91,7 @@ function dm3_datafields() {
         function render_relation_field(field, doc, rel_topics) {
             switch (field.view.editor) {
             case "checkboxes":
-                var topics = dms.get_topics(field.model.related_type_id)
+                var topics = dmc.get_topics(field.model.related_type_id)
                 var relation_div = $("<div>")
                 for (var i = 0, topic; topic = topics[i]; i++) {
                     var attr = {type: "checkbox", id: topic.id, name: "relation_" + field.id}
@@ -158,7 +158,7 @@ function dm3_datafields() {
                             }
                         } else {
                             if (was_checked_before) {
-                                delete_relation(dms.get_relation(doc.id, checkbox.id).id)
+                                delete_relation(dmc.get_relation(doc.id, checkbox.id).id)
                             }
                         }
                     }

@@ -11,14 +11,14 @@
         <!-- TinyMCE -->
         <script type="text/javascript" src="script/tiny_mce/tiny_mce.js"></script>
         <!-- DeepaMehta 3 -->
-        <script type="text/javascript" src="script/deepamehta_service.js"></script>
+        <script type="text/javascript" src="script/rest_client.js"></script>
         <script type="text/javascript" src="script/ui_helper.js"></script>
         <script type="text/javascript" src="script/deepamehta3.js"></script>
         <script type="text/javascript" src="script/canvas.js"></script>
     </head>
     <body>
         <div id="upper-toolbar" class="dm-toolbar">
-            <form id="search-form">
+            <form action="#" id="search-form">
                 <div id="searchmode-select-placeholder"></div>
                 <span id="search_widget">
                     <input id="search_field" type="text">
@@ -35,13 +35,13 @@
         </div>
         <div id="canvas-panel">
         </div>
-        <form id="document-form">
+        <form action="#" id="document-form">
             <div id="detail-panel"></div>
             <div id="lower-toolbar" class="dm-toolbar"></div>
         </form>
         <div id="attachment_dialog" title="Upload Attachment">
             File:
-            <form id="attachment_form" method="post" enctype="multipart/form-data" target="upload-target">
+            <form action="#" id="attachment_form" method="post" enctype="multipart/form-data" target="upload-target">
                 <input type="file" name="_attachments" size="60">
                 <input type="hidden" name="_rev" id="attachment_form_rev">
                 <input type="submit" value="Upload">
