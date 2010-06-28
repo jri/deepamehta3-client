@@ -523,12 +523,16 @@ function trigger_hook(hook_name) {
 
 function trigger_doctype_hook(doc, hook_name, args) {
     // Lookup implementation
-    var doctype_impl = doctype_impls[get_type(doc).implementation]
+    var doctype_impl = get_doctype_impl(doc)
     // Trigger the hook only if it is defined (a doctype implementation must not define all hooks).
     // alert("trigger_doctype_hook: doctype=" + doctype_impl.name + " hook_name=" + hook_name + " hook=" + doctype_impl[hook_name])
     if (doctype_impl[hook_name]) {
         return doctype_impl[hook_name](args)
     }
+}
+
+function get_doctype_impl(topic) {
+    return doctype_impls[get_type(topic).implementation]
 }
 
 function call_relation_function(function_name) {

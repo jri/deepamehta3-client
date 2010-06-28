@@ -56,8 +56,9 @@ function dm3_datafields() {
             case "single line":
                 var input = render_input()
                 if (field.view.autocomplete_indexes) {
-                    input.keyup(PlainDocument.prototype.autocomplete)
-                    input.blur(PlainDocument.prototype.lost_focus)
+                    var doctype_impl = get_doctype_impl(doc)
+                    input.keyup(doctype_impl.autocomplete)
+                    input.blur(doctype_impl.lost_focus)
                     input.attr({autocomplete: "off"})
                 }
                 return input
@@ -147,7 +148,7 @@ function dm3_datafields() {
                 $("input:checkbox[name=relation_" + field.id + "]").each(
                     function() {
                         var checkbox = this
-                        var was_checked_before = includes(PlainDocument.prototype.topic_buffer[field.id],
+                        var was_checked_before = includes(get_doctype_impl(doc).topic_buffer[field.id],
                             function(topic) {
                                 return topic.id == checkbox.id
                             }

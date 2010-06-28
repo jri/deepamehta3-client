@@ -16,13 +16,19 @@ function UIHelper() {
      *          <span>                  - the button's icon (provided it has an icon)
      *          button_label            - the button's label (a text node)
      *
-     * @param   id      ID of the <button> element that is transformed to a jQuery UI button. If no such DOM element
-     *                  exists in the document, a button element is created and the caller is responsible for adding
-     *                  the returned button to the DOM tree.
+     * @param   id          ID of the <button> element that is transformed to a jQuery UI button. If no such DOM element
+     *                      exists in the document, a button element is created and the caller is responsible for adding
+     *                      the returned button to the DOM tree.
+     * @param   handler     The callback function.
      *
-     * @return          The button (a jQuery object).
+     * @return              The button (a jQuery object).
      */
     this.button = function(id, handler, label, icon, is_submit) {
+        //
+        if (!handler) {
+            alert("WARNING (UIHelper.button): No handler specified for button \"" + id + "\"");
+        }
+        //
         var button = $("#" + id)
         if (button.length == 0) {
             // Note: type="button" is required. Otherwise the button acts as submit button (if contained in a form).
