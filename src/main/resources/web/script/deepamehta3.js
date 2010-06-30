@@ -23,9 +23,9 @@ var doctype_impl_sources = []
 var doctype_impls = {}
 var css_stylesheets = []
 //
-var topic_types = {}        // key: Type ID, value: type definition
-                            //                      (object with "fields", "view", and "implementation" attributes)
-var topic_type_icons = {}   // key: Type ID, value: icon (JavaScript Image object)
+var topic_types = {}        // key: Type URI, value: type definition
+                            //                  (object with "uri", "fields", "view", and "implementation" attributes)
+var topic_type_icons = {}   // key: Type URI, value: icon (JavaScript Image object)
 var generic_topic_icon = create_image(GENERIC_TOPIC_ICON_SRC)
 
 // log window
@@ -286,8 +286,8 @@ function submit_document() {
 
 function create_topic_from_menu() {
     // update DB
-    var topic_type = ui.menu_item("create-type-menu").label
-    selected_topic = create_topic(topic_type)
+    var type_uri = ui.menu_item("create-type-menu").value
+    selected_topic = create_topic(type_uri)
     // update GUI
     add_topic_to_canvas(selected_topic)
     // initiate editing
@@ -297,13 +297,13 @@ function create_topic_from_menu() {
 /**
  * Builds a topic and stores it in the DB.
  *
- * @param   type_id         The topic type ID, e.g. "Note".
+ * @param   type_uri        The topic type URI, e.g. "http://www.deepamehta.de/core/topictype/Note".
  * @param   properties      Optional: topic properties (object, key: field ID, value: content).
  *
  * @return  The topic as stored in the DB.
  */
-function create_topic(type_id, properties) {
-    var topic = build_topic(type_id, properties)
+function create_topic(type_uri, properties) {
+    var topic = build_topic(type_uri, properties)
     return dmc.create_topic(topic)
 }
 
@@ -312,9 +312,9 @@ function create_topic(type_id, properties) {
  *
  * @return  The topic object.
  */
-function build_topic(type_id, properties) {
+function build_topic(type_uri, properties) {
     return {
-        type_id: type_id,
+        type_uri: type_uri,
         properties: properties || {}
     }
 }
@@ -406,13 +406,13 @@ function add_plugin(source_path) {
     plugin_sources.push(source_path)
 }
 
-function add_topic_type(type_id, typedef) {
-    topic_types[type_id] = typedef
-    topic_type_icons[type_id] = create_image(get_icon_src(type_id))
+function add_topic_type(type_uri, typedef) {
+    topic_types[type_uri] = typedef
+    topic_type_icons[type_uri] = create_image(get_icon_src(type_uri))
 }
 
-function remove_topic_type(type_id) {
-    delete topic_types[type_id]
+function remove_topic_type(type_uri) {
+    delete topic_types[type_uri]
 }
 
 function doctype_implementation(source_path) {
@@ -430,10 +430,10 @@ function javascript_source(source_path) {
 /**************************************** Helper ****************************************/
 
 function load_types() {
-    var type_ids = dmc.get_topic_type_ids()
-    for (var i = 0, type_id; type_id = type_ids[i]; i++) {
-        var type = dmc.get_topic_type(type_id)
-        add_topic_type(type_id, type)
+    var type_uris = dmc.get_topic_type_uris()
+    for (var i = 0, type_uri; type_uri = type_uris[i]; i++) {
+        var type = dmc.get_topic_type(type_uri)
+        add_topic_type(type_uri, type)
     }
 }
 
@@ -512,7 +512,7 @@ function trigger_hook(hook_name) {
             }
             // 2) Store result
             // Note: undefined is not added to the result, but null is.
-            // typeof is required because null==undefined !
+            // typeof is required because null==undefined (Firefox 2)!
             if (typeof(res) != "undefined") {
                 result.push(res)
             }
@@ -555,15 +555,11 @@ function document_exists(doc_id) {
 
 // --- GUI ---
 
-function searchmode_select() {
-    return $("<select>").attr("id", "searchmode-select")
-}
-
 function create_type_menu(menu_id, handler) {
     var type_menu = ui.menu(menu_id, handler)
-    for (var type in topic_types) {
+    for (var type_uri in topic_types) {
         // add type to menu
-        type_menu.add_item({label: type, value: type, icon: get_icon_src(type)})
+        type_menu.add_item({label: type_label(type_uri), value: type_uri, icon: get_icon_src(type_uri)})
     }
     return type_menu
 }
@@ -572,6 +568,12 @@ function rebuild_type_menu(menu_id) {
     var selection = ui.menu_item(menu_id).value
     $("#" + menu_id).replaceWith(create_type_menu(menu_id))
     ui.select_menu_item(menu_id, selection)
+}
+
+// ---
+
+function searchmode_select() {
+    return $("<select>").attr("id", "searchmode-select")
 }
 
 function create_special_select() {
@@ -586,7 +588,7 @@ function create_special_select() {
  * @param   doc     a topic document
  */
 function add_topic_to_canvas(topic) {
-    canvas.add_topic(topic.id, topic.type_id, topic_label(topic), true, true)
+    canvas.add_topic(topic.id, topic.type_uri, topic_label(topic), true, true)
 }
 
 //
@@ -601,7 +603,7 @@ function render_topic_list(topics, render_function) {
     for (var i = 0, topic; topic = topics[i]; i++) {
         // icon
         var icon_td = $("<td>").addClass("topic-icon").addClass(i == topics.length - 1 ? "last-topic" : undefined)
-        icon_td.append(render_topic_anchor(topic, type_icon_tag(topic.type_id, "type-icon")))
+        icon_td.append(render_topic_anchor(topic, type_icon_tag(topic.type_uri, "type-icon")))
         // label
         var topic_td = $("<td>").addClass("topic-label").addClass(i == topics.length - 1 ? "last-topic" : undefined)
         var list_item = render_function(topic)
@@ -635,8 +637,8 @@ function render_topic_anchor(topic, anchor_content) {
 /**
  * @return  The <img> element (jQuery object).
  */
-function type_icon_tag(type, css_class) {
-    return image_tag(get_icon_src(type), css_class)
+function type_icon_tag(type_uri, css_class) {
+    return image_tag(get_icon_src(type_uri), css_class)
 }
 
 /**
@@ -652,10 +654,10 @@ function image_tag(src, css_class) {
  *
  * @return  The icon source (string).
  */
-function get_icon_src(type) {
-    // Note: topic_types[type] is undefined if plugin is deactivated and content still exist.
-    if (topic_types[type] && topic_types[type].view && topic_types[type].view.icon_src) {
-        return topic_types[type].view.icon_src
+function get_icon_src(type_uri) {
+    // Note: topic_types[type_uri] is undefined if plugin is deactivated and content still exist.
+    if (topic_types[type_uri] && topic_types[type_uri].view.icon_src) {
+        return topic_types[type_uri].view.icon_src
     } else {
         return GENERIC_TOPIC_ICON_SRC
     }
@@ -708,59 +710,66 @@ function render_object(object) {
 // --- Types ---
 
 function get_type(topic) {
-    return topic_types[topic.type_id]
+    return topic_types[topic.type_uri]
 }
 
 function get_topic_type(type_topic) {
-    return topic_types[type_topic.properties.type_id]
+    return topic_types[type_topic.properties["http://www.deepamehta.de/core/property/TypeURI"]]
 }
 
 // FIXME: to be dropped
-function get_field(doc, field_id) {
+function get_field(doc, field_uri) {
     for (var i = 0, field; field = get_type(doc).fields[i]; i++) {
-        if (field.id == field_id) {
+        if (field.uri == field_uri) {
             return field
         }
     }
 }
 
-function get_field_index(topic_type, field_id) {
+function get_field_index(topic_type, field_uri) {
     for (var i = 0, field; field = topic_type.fields[i]; i++) {
-        if (field.id == field_id) {
+        if (field.uri == field_uri) {
             return i
         }
     }
 }
 
-function add_field(type_id, field) {
-    topic_types[type_id].fields.push(field)
+function add_field(type_uri, field) {
+    topic_types[type_uri].fields.push(field)
 }
 
-function remove_field(type_id, field_id) {
-    var topic_type = topic_types[type_id]
-    var i = get_field_index(topic_type, field_id)
+function remove_field(type_uri, field_uri) {
+    var topic_type = topic_types[type_uri]
+    var i = get_field_index(topic_type, field_uri)
     // error check 1
     if (i == undefined) {
-        alert("ERROR (remove_field): field with ID \"" + field_id +
+        alert("ERROR (remove_field): field with URI \"" + field_uri +
             "\" not found in fields " + JSON.stringify(topic_type.fields))
         return
     }
     //
     topic_type.fields.splice(i, 1)
     // error check 2
-    if (get_field_index(topic_type, field_id) >= 0) {
-        alert("ERROR (remove_field): more than one field with ID \"" +
-            field_id + "\" found")
+    if (get_field_index(topic_type, field_uri) >= 0) {
+        alert("ERROR (remove_field): more than one field with URI \"" +
+            field_uri + "\" found")
         return
     }
 }
 
 // ---
 
-// FIXME: to be dropped
-function get_value(doc, field_id) {
-    return get_field(doc, field_id).content
+function get_value(topic, field_uri) {
+    var value = topic.properties[field_uri]
+    if (!value) {
+        alert("WARNING (get_value): Data field has no value.\nData field: \"" +
+            field_uri + "\".\nTopic: " + JSON.stringify(topic))
+        value = "?"
+    }
+    return value
 }
+
+// ---
 
 /**
  * Returns the label for the topic.
@@ -768,19 +777,22 @@ function get_value(doc, field_id) {
 function topic_label(topic) {
     var type = get_type(topic)
     // if there is a view.label_field declaration use the content of that field
-    if (type.view) {
-        var field_id = type.view.label_field
-        if (field_id) {
-            return topic.properties[field_id] || ""
-        }
+    var field_uri = type.view.label_field
+    if (field_uri) {
+        return topic.properties[field_uri] || ""
     }
     // fallback: use the content of the first field
-    return topic.properties[type.fields[0].id] || ""
+    return topic.properties[type.fields[0].uri] || ""
+}
+
+function type_label(type_uri) {
+    // Note: the type.view.label attribute is mandatory
+    return topic_types[type_uri].view.label
 }
 
 function field_label(field) {
-    // Note: the "view" element is optional, e.g. for a "date" field
-    return field.view && field.view.label ? field.view.label : field.id
+    // Note: the field.view.label attribute is mandatory
+    return field.view.label
 }
 
 
@@ -951,9 +963,9 @@ function to_binary(str) {
 /*** Helper Classes ***/
 
 // FIXME: not in use.
-function Topic(id, type_id, label, properties) {
+function Topic(id, type_uri, label, properties) {
     this.id = id
-    this.type_id = type_id
+    this.type_uri = type_uri
     this.label = label
     this.properties = properties
 }

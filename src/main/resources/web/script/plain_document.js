@@ -47,7 +47,7 @@ function PlainDocument() {
                     $("#detail-panel").append($("<div>").addClass("field-value").append(html))
                 } else {
                     alert("WARNING (PlainDocument.render_document):\n" +
-                        "field \"" + field.id + "\" of topic " + doc.id + " is not handled by any plugin.\n" +
+                        "field \"" + field.uri + "\" of topic " + doc.id + " is not handled by any plugin.\n" +
                         "field model=" + JSON.stringify(field.model) + "\n" +
                         "field view=" + JSON.stringify(field.view))
                 }
@@ -112,7 +112,7 @@ function PlainDocument() {
                 trigger_hook("post_render_form_field", field, topic)
             } else {
                 alert("WARNING (PlainDocument.render_form):\n" +
-                    "field \"" + field.id + "\" of topic " + topic.id + " is not handled by any plugin.\n" +
+                    "field \"" + field.uri + "\" of topic " + topic.id + " is not handled by any plugin.\n" +
                     "field model=" + JSON.stringify(field.model) + "\n" +
                     "field view=" + JSON.stringify(field.view))
             }
@@ -122,7 +122,7 @@ function PlainDocument() {
             if (field.model.type == "relation") {
                 var topics = get_relation_field_content(topic.id, field)
                 // buffer current topic selection to compare it at submit time
-                plain_doc.topic_buffer[field.id] = topics
+                plain_doc.topic_buffer[field.uri] = topics
                 //
                 return topics
             }
@@ -186,7 +186,7 @@ function PlainDocument() {
      * @return  Array of Topic objects.
      */
     function get_relation_field_content(topic_id, field) {
-        return dmc.get_related_topics(topic_id, [field.model.related_type_id], [], ["SEARCH_RESULT"])
+        return dmc.get_related_topics(topic_id, [field.model.related_type_uri], [], ["SEARCH_RESULT"])
     }
 
     /* ---------------------------------------- Private Methods ---------------------------------------- */
@@ -206,11 +206,11 @@ function PlainDocument() {
             // typeof is required because null==undefined (Firefox 2)!
             if (typeof(content) != "undefined") {
                 if (content != null) {
-                    selected_topic.properties[field.id] = content
+                    selected_topic.properties[field.uri] = content
                 }
             } else {
                 alert("WARNING (PlainDocument.do_update_document):\n" +
-                    "field \"" + field.id + "\" of topic " + selected_topic.id + " is not handled by any plugin.\n" +
+                    "field \"" + field.uri + "\" of topic " + selected_topic.id + " is not handled by any plugin.\n" +
                     "field model=" + JSON.stringify(field.model) + "\n" +
                     "field view=" + JSON.stringify(field.view))
             }
@@ -407,8 +407,8 @@ function PlainDocument() {
     }
 
     function get_field(input_element) {
-        var field_id = input_element.id.substr(6)            // 6 = "field_".length
-        var field = get_field(selected_topic, field_id)
+        var field_uri = input_element.id.substr(6)            // 6 = "field_".length
+        var field = get_field(selected_topic, field_uri)
         return field
     }
 

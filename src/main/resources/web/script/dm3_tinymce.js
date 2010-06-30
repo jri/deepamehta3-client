@@ -26,7 +26,7 @@ function dm3_tinymce() {
 
     this.render_field_content = function(field, doc) {
         if (field.model.type == "html") {
-            return doc.properties[field.id]
+            return doc.properties[field.uri]
         }
     }
 
@@ -34,8 +34,8 @@ function dm3_tinymce() {
         if (field.model.type == "html") {
             var lines = field.view.lines || DEFAULT_AREA_HEIGHT
             var textarea = $("<textarea>")
-            textarea.attr({id: "field_" + field.id, rows: lines, cols: DEFAULT_FIELD_WIDTH})
-            textarea.text(doc.properties[field.id])
+            textarea.attr({id: "field_" + field.uri, rows: lines, cols: DEFAULT_FIELD_WIDTH})
+            textarea.text(doc.properties[field.uri])
             return textarea
         }
     }
@@ -43,7 +43,7 @@ function dm3_tinymce() {
     this.post_render_form_field = function(field) {
         if (field.model.type == "html") {
             tinymce_options.window = window
-            tinymce_options.element_id = "field_" + field.id
+            tinymce_options.element_id = "field_" + field.uri
             if (!tinyMCE.execCommand("mceAddFrameControl", false, tinymce_options)) {
                 alert("mceAddFrameControl not executed")
             }
@@ -52,14 +52,14 @@ function dm3_tinymce() {
 
     this.get_field_content = function(field) {
         if (field.model.type == "html") {
-            return tinyMCE.get("field_" + field.id).getContent()
+            return tinyMCE.get("field_" + field.uri).getContent()
         }
     }
 
     this.post_submit_form = function(doc) {
         for (var i = 0, field; field = get_type(doc).fields[i]; i++) {
             if (field.model.type == "html") {
-                if (!tinyMCE.execCommand("mceRemoveControl", false, "field_" + field.id)) {
+                if (!tinyMCE.execCommand("mceRemoveControl", false, "field_" + field.uri)) {
                     alert("mceRemoveControl not executed")
                 }
             }

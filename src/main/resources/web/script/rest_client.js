@@ -6,8 +6,8 @@ function DeepaMehtaClient(core_service_uri) {
         return request("GET", "/topic/" + topic_id)
     }
 
-    this.get_topics = function(type_id) {
-        return request("GET", "/topic/by_type/" + type_id)
+    this.get_topics = function(type_uri) {
+        return request("GET", "/topic/by_type/" + encodeURIComponent(type_uri))
     }
 
     /**
@@ -68,24 +68,25 @@ function DeepaMehtaClient(core_service_uri) {
 
     // --- Types ---
 
-    this.get_topic_type_ids = function() {
+    this.get_topic_type_uris = function() {
         return request("GET", "/topictype")
     }
 
-    this.get_topic_type = function(type_id) {
-        return request("GET", "/topictype/" + type_id)
+    this.get_topic_type = function(type_uri) {
+        return request("GET", "/topictype/" + encodeURIComponent(type_uri))
     }
 
-    this.add_data_field = function(type_id, field) {
-        return request("POST", "/topictype/" + type_id, field)
+    this.add_data_field = function(type_uri, field) {
+        return request("POST", "/topictype/" + encodeURIComponent(type_uri), field)
     }
 
-    this.update_data_field = function(type_id, field) {
-        return request("PUT", "/topictype/" + type_id, field)
+    this.update_data_field = function(type_uri, field) {
+        return request("PUT", "/topictype/" + encodeURIComponent(type_uri), field)
     }
 
-    this.remove_data_field = function(type_id, field_id) {
-        return request("DELETE", "/topictype/" + type_id + "/field/" + field_id)
+    this.remove_data_field = function(type_uri, field_uri) {
+        return request("DELETE", "/topictype/" + encodeURIComponent(type_uri) +
+            "/field/" + encodeURIComponent(field_uri))
     }
 
     // --- Plugins ---

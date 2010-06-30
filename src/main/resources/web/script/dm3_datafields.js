@@ -18,18 +18,15 @@ function dm3_datafields() {
             switch (field.view.editor) {
             case "single line":
             case "multi line":
-                if (!doc.properties[field.id]) {
-                    alert("WARNING: Data field \"" + field.id + "\" has no value. Topic:\n" + JSON.stringify(doc))
-                }
-                return render_text(doc.properties[field.id])
+                return render_text(get_value(doc, field.uri))
             default:
                 alert("render_field_content: unexpected field editor (" + field.view.editor + ")")
             }
             break
         case "number":
-            return doc.properties[field.id]
+            return get_value(doc, field.uri)
         case "date":
-            return format_date(doc.properties[field.id])
+            return format_date(get_value(doc, field.uri))
         case "relation":
             switch (field.view.editor) {
             case "checkboxes":
@@ -65,8 +62,8 @@ function dm3_datafields() {
             case "multi line":
                 var lines = field.view.lines || DEFAULT_AREA_HEIGHT
                 return $("<textarea>").attr({
-                    id: "field_" + field.id, rows: lines, cols: DEFAULT_FIELD_WIDTH
-                }).text(doc.properties[field.id])
+                    "field-uri": field.uri, rows: lines, cols: DEFAULT_FIELD_WIDTH
+                }).text(get_value(doc, field.uri))
             default:
                 alert("render_text_field: unexpected field editor (" + field.view.editor + ")")
             }
@@ -77,12 +74,12 @@ function dm3_datafields() {
         }
 
         function render_date_field(field) {
-            var input = $("<input>").attr({type: "hidden", id: "field_" + field.id, value: doc.properties[field.id]})
+            var input = $("<input>").attr({type: "hidden", "field-uri": field.uri, value: get_value(doc, field.uri)})
             input.change(function() {
                 $("span", $(this).parent()).text(format_date(this.value))
             })
             var date_div = $("<div>")
-            date_div.append($("<span>").css("margin-right", "1em").text(format_date(doc.properties[field.id])))
+            date_div.append($("<span>").css("margin-right", "1em").text(format_date(get_value(doc, field.uri))))
             date_div.append(input)
             input.datepicker({firstDay: 1, showAnim: "fadeIn", showOtherMonths: true, showOn: "button",
                 buttonImage: "images/calendar.gif", buttonImageOnly: true, buttonText: "Choose Date"})
@@ -92,10 +89,10 @@ function dm3_datafields() {
         function render_relation_field(field, doc, rel_topics) {
             switch (field.view.editor) {
             case "checkboxes":
-                var topics = dmc.get_topics(field.model.related_type_id)
+                var topics = dmc.get_topics(field.model.related_type_uri)
                 var relation_div = $("<div>")
                 for (var i = 0, topic; topic = topics[i]; i++) {
-                    var attr = {type: "checkbox", id: topic.id, name: "relation_" + field.id}
+                    var attr = {type: "checkbox", id: topic.id, name: "relation_" + field.uri}
                     if (includes(rel_topics, function(t) {
                             return t.id == topic.id
                         })) {
@@ -111,7 +108,7 @@ function dm3_datafields() {
 
         function render_input() {
             return $("<input>").attr({
-                type: "text", id: "field_" + field.id, value: doc.properties[field.id], size: DEFAULT_FIELD_WIDTH
+                type: "text", "field-uri": field.uri, value: get_value(doc, field.uri), size: DEFAULT_FIELD_WIDTH
             })
         }
     }
@@ -122,21 +119,21 @@ function dm3_datafields() {
             switch (field.view.editor) {
             case "single line":
             case "multi line":
-                return $.trim($("#field_" + field.id).val())
+                return $.trim($("[field-uri=" + field.uri + "]").val())
             default:
                 alert("get_field_content: unexpected field editor (" + field.view.editor + ")")
             }
             break
         case "number":
-            var val = $("#field_" + field.id).val()
+            var val = $("[field-uri=" + field.uri + "]").val()
             var content = Number(val)
             if (isNaN(content)) {
-                alert("WARNING: " + val + " is not a number (field \"" + field.id + "\"). The old value is restored.")
+                alert("WARNING: " + val + " is not a number (field \"" + field.uri + "\"). The old value is restored.")
                 return null     // prevent this field from being updated
             }
             return content
         case "date":
-            return $("#field_" + field.id).val()
+            return $("[field-uri=" + field.uri + "]").val()
         case "relation":
             return update_relation_field(field, doc)
         }
@@ -145,10 +142,10 @@ function dm3_datafields() {
         function update_relation_field(field, doc) {
             switch (field.view.editor) {
             case "checkboxes":
-                $("input:checkbox[name=relation_" + field.id + "]").each(
+                $("input:checkbox[name=relation_" + field.uri + "]").each(
                     function() {
                         var checkbox = this
-                        var was_checked_before = includes(get_doctype_impl(doc).topic_buffer[field.id],
+                        var was_checked_before = includes(get_doctype_impl(doc).topic_buffer[field.uri],
                             function(topic) {
                                 return topic.id == checkbox.id
                             }
