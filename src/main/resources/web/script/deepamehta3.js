@@ -284,16 +284,6 @@ function submit_document() {
 
 
 
-function create_topic_from_menu() {
-    // update DB
-    var type_uri = ui.menu_item("create-type-menu").value
-    selected_topic = create_topic(type_uri)
-    // update GUI
-    add_topic_to_canvas(selected_topic)
-    // initiate editing
-    edit_document()
-}
-
 /**
  * Builds a topic and stores it in the DB.
  *
@@ -303,32 +293,30 @@ function create_topic_from_menu() {
  * @return  The topic as stored in the DB.
  */
 function create_topic(type_uri, properties) {
-    var topic = build_topic(type_uri, properties)
-    return dmc.create_topic(topic)
-}
-
-/**
- * Builds and returns a topic object.
- *
- * @return  The topic object.
- */
-function build_topic(type_uri, properties) {
-    return {
+    var topic = {
         type_uri: type_uri,
         properties: properties || {}
     }
+    return dmc.create_topic(topic)
+}
+
+function update_topic(topic, old_properties) {
+    // update DB
+    dmc.set_topic_properties(topic.id, topic.properties)
+    // trigger hook
+    trigger_hook("post_update_topic", topic, old_properties)
 }
 
 /**
  * Deletes a topic (including its relations) from the DB and from the GUI.
  */
-function delete_topic(topic_id) {
+function delete_topic(topic) {
     // update DB
-    dmc.delete_topic(topic_id)
+    dmc.delete_topic(topic.id)
     // trigger hook
-    trigger_hook("post_delete_topic", selected_topic)
+    trigger_hook("post_delete_topic", topic)
     // update GUI
-    hide_topic(topic_id, true)
+    hide_topic(topic.id, true)
 }
 
 /**
@@ -365,22 +353,13 @@ function hide_topic(topic_id, is_part_of_delete_operation) {
  * @return  The relation as stored in the DB.
  */
 function create_relation(type_id, src_topic_id, dst_topic_id, properties) {
-    var relation = build_relation(type_id, src_topic_id, dst_topic_id, properties)
-    return dmc.create_relation(relation)
-}
-
-/**
- * Builds and returns a relation object.
- *
- * @return  The relation object.
- */
-function build_relation(type_id, src_topic_id, dst_topic_id, properties) {
-    return {
+    var relation = {
         type_id: type_id,
         src_topic_id: src_topic_id,
         dst_topic_id: dst_topic_id,
         properties: properties || {}
     }
+    return dmc.create_relation(relation)
 }
 
 /**
@@ -396,6 +375,31 @@ function delete_relation(rel_id) {
 
 
 
+/***************************************************************************************/
+/**************************************** Types ****************************************/
+/***************************************************************************************/
+
+
+
+/**
+ * Creates a topic type in the DB.
+ *
+ * @param   type_uri        The topic type URI, e.g. "http://www.deepamehta.de/core/topictype/Note".
+ * @param   properties      Optional: topic properties (object, key: field ID, value: content).
+ *
+ * @return  The topic view of the created topic type.
+ */
+function create_topic_type(topic_type) {
+    // update DB
+    var tt = dmc.create_topic_type(topic_type);
+    // trigger hook
+    trigger_hook("post_create_topic", tt)
+    //
+    return tt
+}
+
+
+
 /************************************************************************************************/
 /**************************************** Plugin Support ****************************************/
 /************************************************************************************************/
@@ -404,15 +408,6 @@ function delete_relation(rel_id) {
 
 function add_plugin(source_path) {
     plugin_sources.push(source_path)
-}
-
-function add_topic_type(type_uri, typedef) {
-    topic_types[type_uri] = typedef
-    topic_type_icons[type_uri] = create_image(get_icon_src(type_uri))
-}
-
-function remove_topic_type(type_uri) {
-    delete topic_types[type_uri]
 }
 
 function doctype_implementation(source_path) {
@@ -431,7 +426,8 @@ function javascript_source(source_path) {
 
 function load_types() {
     var type_uris = dmc.get_topic_type_uris()
-    for (var i = 0, type_uri; type_uri = type_uris[i]; i++) {
+    for (var i = 0; i < type_uris.length; i++) {
+        var type_uri = type_uris[i]
         var type = dmc.get_topic_type(type_uri)
         add_topic_type(type_uri, type)
     }
@@ -443,10 +439,12 @@ function get_plugins() {
     if (LOG_PLUGIN_LOADING) log("Plugins installed at server-side: " + plugins.length)
     for (var i = 0, plugin; plugin = plugins[i]; i++) {
         if (plugin.plugin_file) {
-            if (LOG_PLUGIN_LOADING) log("..... plugin \"" + plugin.plugin_id + "\" contains client-side parts -- to be loaded")
+            if (LOG_PLUGIN_LOADING) log("..... plugin \"" + plugin.plugin_id +
+                "\" contains client-side parts -- to be loaded")
             add_plugin("/" + plugin.plugin_id + "/script/" + plugin.plugin_file)
         } else {
-            if (LOG_PLUGIN_LOADING) log("..... plugin \"" + plugin.plugin_id + "\" contains no client-side parts -- nothing to load")
+            if (LOG_PLUGIN_LOADING) log("..... plugin \"" + plugin.plugin_id +
+                "\" contains no client-side parts -- nothing to load")
         }
     }
 }
@@ -507,13 +505,12 @@ function trigger_hook(hook_name) {
             } else if (arguments.length == 4) {
                 var res = plugin[hook_name](arguments[1], arguments[2], arguments[3])
             } else {
-                alert("ERROR at trigger_hook: too much arguments (" +
+                alert("ERROR (trigger_hook): too much arguments (" +
                     (arguments.length - 1) + "), maximum is 3.\nhook=" + hook_name)
             }
             // 2) Store result
             // Note: undefined is not added to the result, but null is.
-            // typeof is required because null==undefined (Firefox 2)!
-            if (typeof(res) != "undefined") {
+            if (res !== undefined) {
                 result.push(res)
             }
         }
@@ -525,7 +522,6 @@ function trigger_doctype_hook(doc, hook_name, args) {
     // Lookup implementation
     var doctype_impl = get_doctype_impl(doc)
     // Trigger the hook only if it is defined (a doctype implementation must not define all hooks).
-    // alert("trigger_doctype_hook: doctype=" + doctype_impl.name + " hook_name=" + hook_name + " hook=" + doctype_impl[hook_name])
     if (doctype_impl[hook_name]) {
         return doctype_impl[hook_name](args)
     }
@@ -554,6 +550,23 @@ function document_exists(doc_id) {
 }
 
 // --- GUI ---
+
+function create_topic_from_menu() {
+    var type_uri = ui.menu_item("create-type-menu").value
+    // 1) update DB
+    var topic = trigger_hook("custom_create_topic", type_uri)[0]
+    if (!topic) {
+        topic = create_topic(type_uri)
+    }
+    //
+    selected_topic = topic
+    // 2) update GUI
+    add_topic_to_canvas(selected_topic)
+    // 3) initiate editing
+    edit_document()
+}
+
+// ---
 
 function create_type_menu(menu_id, handler) {
     var type_menu = ui.menu(menu_id, handler)
@@ -707,14 +720,47 @@ function render_object(object) {
     return table
 }
 
-// --- Types ---
+
+
+// ******************
+// *** Type Cache ***
+// ******************
+
+
+
+function add_topic_type(type_uri, topic_type) {
+    topic_types[type_uri] = topic_type
+    topic_type_icons[type_uri] = create_image(get_icon_src(type_uri))
+}
+
+function remove_topic_type(type_uri) {
+    delete topic_types[type_uri]
+}
 
 function get_type(topic) {
+    if (!topic.type_uri) {
+        throw "ERROR (get_type): topic has no type_uri attribute. Topic: " + JSON.stringify(topic)
+    }
+    //
     return topic_types[topic.type_uri]
 }
 
+/**
+ * Looks up a type definition from the cache.
+ *
+ * @param   type_topic  the topic representing the type (object with "id", "type_uri", and "properties" attributes).
+ *
+ * @return  the type definition (object with "uri", "fields", "view", and "implementation" attributes)
+ */
 function get_topic_type(type_topic) {
-    return topic_types[type_topic.properties["http://www.deepamehta.de/core/property/TypeURI"]]
+    var type_uri = type_topic.properties["http://www.deepamehta.de/core/property/TypeURI"]
+    var topic_type = topic_types[type_uri]
+    //
+    if (!topic_type) {
+        throw "ERROR (get_topic_type): topic type not found in cache. Type URI: " + type_uri
+    }
+    //
+    return topic_type
 }
 
 // FIXME: to be dropped
@@ -757,14 +803,24 @@ function remove_field(type_uri, field_uri) {
     }
 }
 
+function set_topic_type_uri(type_uri, new_type_uri) {
+    var topic_type = topic_types[type_uri]      // lookup type
+    remove_topic_type(type_uri)                 // remove it from cache
+    topic_type.uri = new_type_uri               // set new URI
+    add_topic_type(new_type_uri, topic_type)    // add to cache again
+}
+
+function set_topic_type_label(type_uri, label) {
+    topic_types[type_uri].view.label = label
+}
+
 // ---
 
 function get_value(topic, field_uri) {
     var value = topic.properties[field_uri]
-    if (!value) {
-        alert("WARNING (get_value): Data field has no value.\nData field: \"" +
-            field_uri + "\".\nTopic: " + JSON.stringify(topic))
-        value = "?"
+    if (value == undefined) {
+        alert("WARNING (get_value): Data field \"" + field_uri + "\" has no value.\n\nTopic: " + JSON.stringify(topic))
+        value = ""
     }
     return value
 }
@@ -773,6 +829,8 @@ function get_value(topic, field_uri) {
 
 /**
  * Returns the label for the topic.
+ *
+ * FIXME: method to be dropped? We have this logic at server-side
  */
 function topic_label(topic) {
     var type = get_type(topic)
@@ -787,7 +845,7 @@ function topic_label(topic) {
 
 function type_label(type_uri) {
     // Note: the type.view.label attribute is mandatory
-    return topic_types[type_uri].view.label
+    return topic_types[type_uri].view.label || "<i>unnamed type</i>"
 }
 
 function field_label(field) {
@@ -879,7 +937,7 @@ function clone(obj) {
     try {
         return JSON.parse(JSON.stringify(obj))
     } catch (e) {
-        alert("ERROR while cloning: " + JSON.stringify(e))
+        alert("ERROR (clone): " + JSON.stringify(e))
     }
 }
 

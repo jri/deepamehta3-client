@@ -195,16 +195,18 @@ function PlainDocument() {
      * Invoked when the user presses the "Save" button.
      */
     function do_update_document() {
-        log("UPDATING")
         //
         trigger_hook("pre_submit_form", selected_topic)
         //
+        // 1) update memory
+        // Remember old property values
+        var old_properties = clone(selected_topic.properties)
+        // Reads out values from GUI elements and update the topic
         for (var i = 0, field; field = get_type(selected_topic).fields[i]; i++) {
             var content = trigger_hook("get_field_content", field, selected_topic)[0]
             // Note: undefined content is an error (means: field type not handled by any plugin).
             // null is a valid hook result (means: plugin prevents the field from being updated).
-            // typeof is required because null==undefined (Firefox 2)!
-            if (typeof(content) != "undefined") {
+            if (content !== undefined) {
                 if (content != null) {
                     selected_topic.properties[field.uri] = content
                 }
@@ -215,9 +217,9 @@ function PlainDocument() {
                     "field view=" + JSON.stringify(field.view))
             }
         }
-        // update DB
-        dmc.set_topic_properties(selected_topic.id, selected_topic.properties)
-        // update GUI
+        // 2) update DB
+        update_topic(selected_topic, old_properties)
+        // 3) update GUI
         var topic_id = selected_topic.id
         var label = topic_label(selected_topic)
         canvas.set_topic_label(topic_id, label)
@@ -252,7 +254,7 @@ function PlainDocument() {
 
     function do_delete() {
         $("#delete_dialog").dialog("close")
-        delete_topic(selected_topic.id)
+        delete_topic(selected_topic)
     }
 
 

@@ -76,6 +76,10 @@ function DeepaMehtaClient(core_service_uri) {
         return request("GET", "/topictype/" + encodeURIComponent(type_uri))
     }
 
+    this.create_topic_type = function(topic_type) {
+        return request("POST", "/topictype", topic_type)
+    }
+
     this.add_data_field = function(type_uri, field) {
         return request("POST", "/topictype/" + encodeURIComponent(type_uri), field)
     }
