@@ -3,6 +3,15 @@ var CORE_SERVICE_URI = "/core"
 var SEARCH_FIELD_WIDTH = 16    // in chars
 var GENERIC_TOPIC_ICON_SRC = "images/gray-dot.png"
 
+var EXCLUDE_TYPES_FROM_MENUS = [
+    "http://www.deepamehta.de/core/topictype/Workspace",
+    "http://www.deepamehta.de/core/topictype/Topicmap",
+    "http://www.deepamehta.de/core/topictype/Icon",
+    "http://www.deepamehta.de/core/topictype/SearchResult",
+    "http://www.deepamehta.de/core/topictype/TopicmapRelationRef",
+    "http://www.deepamehta.de/core/topictype/Plugin"
+]
+
 var ENABLE_LOGGING = true
 var LOG_PLUGIN_LOADING = false
 var LOG_IMAGE_LOADING = false
@@ -572,7 +581,9 @@ function create_type_menu(menu_id, handler) {
     var type_menu = ui.menu(menu_id, handler)
     for (var type_uri in topic_types) {
         // add type to menu
-        type_menu.add_item({label: type_label(type_uri), value: type_uri, icon: get_icon_src(type_uri)})
+        if (!contains(EXCLUDE_TYPES_FROM_MENUS, type_uri)) {
+            type_menu.add_item({label: type_label(type_uri), value: type_uri, icon: get_icon_src(type_uri)})
+        }
     }
     return type_menu
 }
@@ -819,7 +830,7 @@ function set_topic_type_label(type_uri, label) {
 function get_value(topic, field_uri) {
     var value = topic.properties[field_uri]
     if (value == undefined) {
-        alert("WARNING (get_value): Data field \"" + field_uri + "\" has no value.\n\nTopic: " + JSON.stringify(topic))
+        // alert("WARNING (get_value): Data field \"" + field_uri + "\" has no value.\n\nTopic: " + JSON.stringify(topic))
         value = ""
     }
     return value
@@ -909,6 +920,17 @@ function inspect(object) {
         str += key + ": " + object[key] + "\n"
     }
     return str
+}
+
+/**
+ * Returns true if the array contains the object.
+ */
+function contains(array, object) {
+    for (var i = 0; i < array.length; i++) {
+        if (array[i] == object) {
+            return true
+        }
+    }
 }
 
 /**
