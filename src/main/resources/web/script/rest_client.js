@@ -88,6 +88,10 @@ function DeepaMehtaClient(core_service_uri) {
         return request("PUT", "/topictype/" + encodeURIComponent(type_uri), field)
     }
 
+    this.set_data_field_order = function(type_uri, field_uris) {
+        return request("PUT", "/topictype/" + encodeURIComponent(type_uri) + "/field_order", field_uris)
+    }
+
     this.remove_data_field = function(type_uri, field_uri) {
         return request("DELETE", "/topictype/" + encodeURIComponent(type_uri) +
             "/field/" + encodeURIComponent(field_uri))
