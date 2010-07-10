@@ -4,12 +4,12 @@ var SEARCH_FIELD_WIDTH = 16    // in chars
 var GENERIC_TOPIC_ICON_SRC = "images/gray-dot.png"
 
 var EXCLUDE_TYPES_FROM_MENUS = [
-    "http://www.deepamehta.de/core/topictype/Workspace",
-    "http://www.deepamehta.de/core/topictype/Topicmap",
-    "http://www.deepamehta.de/core/topictype/Icon",
-    "http://www.deepamehta.de/core/topictype/SearchResult",
-    "http://www.deepamehta.de/core/topictype/TopicmapRelationRef",
-    "http://www.deepamehta.de/core/topictype/Plugin"
+    "de/deepamehta/core/topictype/Workspace",
+    "de/deepamehta/core/topictype/Topicmap",
+    "de/deepamehta/core/topictype/Icon",
+    "de/deepamehta/core/topictype/SearchResult",
+    "de/deepamehta/core/topictype/TopicmapRelationRef",
+    "de/deepamehta/core/topictype/Plugin"
 ]
 
 var ENABLE_LOGGING = true
@@ -296,7 +296,7 @@ function submit_document() {
 /**
  * Builds a topic and stores it in the DB.
  *
- * @param   type_uri        The topic type URI, e.g. "http://www.deepamehta.de/core/topictype/Note".
+ * @param   type_uri        The topic type URI, e.g. "de/deepamehta/core/topictype/Note".
  * @param   properties      Optional: topic properties (object, key: field ID, value: content).
  *
  * @return  The topic as stored in the DB.
@@ -393,7 +393,7 @@ function delete_relation(rel_id) {
 /**
  * Creates a topic type in the DB.
  *
- * @param   type_uri        The topic type URI, e.g. "http://www.deepamehta.de/core/topictype/Note".
+ * @param   type_uri        The topic type URI, e.g. "de/deepamehta/core/topictype/Note".
  * @param   properties      Optional: topic properties (object, key: field ID, value: content).
  *
  * @return  The topic view of the created topic type.
@@ -764,7 +764,7 @@ function get_type(topic) {
  * @return  the type definition (object with "uri", "fields", "view", and "implementation" attributes)
  */
 function get_topic_type(type_topic) {
-    var type_uri = type_topic.properties["http://www.deepamehta.de/core/property/TypeURI"]
+    var type_uri = type_topic.properties["de/deepamehta/core/property/TypeURI"]
     var topic_type = topic_types[type_uri]
     //
     if (!topic_type) {
