@@ -12,7 +12,7 @@ var EXCLUDE_TYPES_FROM_MENUS = [
     "de/deepamehta/core/topictype/Plugin"
 ]
 
-var ENABLE_LOGGING = true
+var ENABLE_LOGGING = false
 var LOG_PLUGIN_LOADING = false
 var LOG_IMAGE_LOADING = false
 var LOG_AJAX_REQUESTS = false
