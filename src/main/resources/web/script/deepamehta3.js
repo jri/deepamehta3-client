@@ -774,9 +774,8 @@ function get_topic_type(type_topic) {
     return topic_type
 }
 
-// FIXME: to be dropped
-function get_field(doc, field_uri) {
-    for (var i = 0, field; field = get_type(doc).fields[i]; i++) {
+function get_data_field(topic_type, field_uri) {
+    for (var i = 0, field; field = topic_type.fields[i]; i++) {
         if (field.uri == field_uri) {
             return field
         }
@@ -812,6 +811,23 @@ function remove_field(type_uri, field_uri) {
             field_uri + "\" found")
         return
     }
+}
+
+// FIXME: rename to set_data_field_order once type cache is encapsulated in its own class
+function update_data_field_order(type_uri, field_uris) {
+    var topic_type = topic_types[type_uri]
+    //
+    var reordered_fields = []
+    for (var i = 0, field_uri; field_uri = field_uris[i]; i++) {
+        reordered_fields.push(get_data_field(topic_type, field_uri))
+    }
+    //
+    if (topic_type.fields.length != reordered_fields.length) {
+        throw "ERROR (update_data_field_order): There are " + topic_type.fields.length + " data fields " +
+            "to order but " + reordered_fields.length + " has been reordered"
+    }
+    //
+    topic_type.fields = reordered_fields
 }
 
 function set_topic_type_uri(type_uri, new_type_uri) {

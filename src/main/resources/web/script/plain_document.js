@@ -410,7 +410,7 @@ function PlainDocument() {
 
     function get_field(input_element) {
         var field_uri = input_element.id.substr(6)            // 6 = "field_".length
-        var field = get_field(selected_topic, field_uri)
+        var field = get_data_field(get_type(selected_topic), field_uri)
         return field
     }
 
