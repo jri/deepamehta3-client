@@ -12,14 +12,15 @@ var EXCLUDE_TYPES_FROM_MENUS = [
     "de/deepamehta/core/topictype/Plugin"
 ]
 
-var ENABLE_LOGGING = false
-var LOG_PLUGIN_LOADING = false
+var ENABLE_LOGGING = true
+var LOG_PLUGIN_LOADING = true
 var LOG_IMAGE_LOADING = false
 var LOG_AJAX_REQUESTS = false
 var LOG_GUI = false
 
 var dmc = new DeepaMehtaClient(CORE_SERVICE_URI)
 var ui = new UIHelper()
+var render = new RenderHelper()
 
 var selected_topic      // topic document being displayed, or null if no one is currently displayed (a Topic object)
 var current_rel_id      // ID of relation being activated, or null if no one is currently activated
@@ -30,6 +31,7 @@ var plugin_sources = []
 var plugins = []
 var doctype_impl_sources = []
 var doctype_impls = {}
+var field_renderer_sources = []
 var css_stylesheets = []
 //
 var topic_types = {}        // key: Type URI, value: type definition
@@ -43,14 +45,17 @@ if (ENABLE_LOGGING) {
 }
 
 // --- register core facilities ---
-// Note: the core plugins must be registered _before_ the vendor plugins (so, we must not
-// put the add_plugin calls in the document ready handler).
-// The DM3 Time plugin, e.g. derives its TimeSearchResult from SearchResult (part of
-// DM3 Fulltext core plugin). The base class must load first.
-doctype_implementation("script/plain_document.js")
-add_plugin("script/dm3_fulltext.js")
-add_plugin("script/dm3_datafields.js")
-add_plugin("script/dm3_tinymce.js")
+register_doctype_implementation("script/plain_document.js")
+//
+register_field_renderer("script/datafield-renderers/text_field_renderer.js")
+register_field_renderer("script/datafield-renderers/number_field_renderer.js")
+register_field_renderer("script/datafield-renderers/date_field_renderer.js")
+register_field_renderer("script/datafield-renderers/html_field_renderer.js")
+register_field_renderer("script/datafield-renderers/reference_field_renderer.js")
+//
+register_plugin("script/dm3_fulltext.js")
+// register_plugin("script/dm3_datafields.js")
+// register_plugin("script/dm3_tinymce.js")
 // css_stylesheet("style/main.css")     // layout flatters while loading
 
 $(document).ready(function() {
@@ -75,7 +80,7 @@ $(document).ready(function() {
     // Note: in order to let a plugin DOM manipulate the GUI
     // the plugins must be loaded _after_ the GUI is set up.
     // alert("Plugins:\n" + plugin_sources.join("\n"))
-    get_plugins()
+    register_plugins()
     load_plugins()
     //
     trigger_hook("init")
@@ -415,12 +420,16 @@ function create_topic_type(topic_type) {
 
 
 
-function add_plugin(source_path) {
+function register_plugin(source_path) {
     plugin_sources.push(source_path)
 }
 
-function doctype_implementation(source_path) {
+function register_doctype_implementation(source_path) {
     doctype_impl_sources.push(source_path)
+}
+
+function register_field_renderer(source_path) {
+    field_renderer_sources.push(source_path)
 }
 
 function css_stylesheet(css_path) {
@@ -442,15 +451,17 @@ function load_types() {
     }
 }
 
-// Adds server-side plugins to the list of plugins to load at client-side
-function get_plugins() {
+/**
+ * Registers server-side plugins to the list of plugins to load at client-side.
+ */
+function register_plugins() {
     var plugins = dmc.get_plugins()
     if (LOG_PLUGIN_LOADING) log("Plugins installed at server-side: " + plugins.length)
     for (var i = 0, plugin; plugin = plugins[i]; i++) {
         if (plugin.plugin_file) {
             if (LOG_PLUGIN_LOADING) log("..... plugin \"" + plugin.plugin_id +
                 "\" contains client-side parts -- to be loaded")
-            add_plugin("/" + plugin.plugin_id + "/script/" + plugin.plugin_file)
+            register_plugin("/" + plugin.plugin_id + "/script/" + plugin.plugin_file)
         } else {
             if (LOG_PLUGIN_LOADING) log("..... plugin \"" + plugin.plugin_id +
                 "\" contains no client-side parts -- nothing to load")
@@ -462,19 +473,20 @@ function load_plugins() {
     // 1) load plugins
     if (LOG_PLUGIN_LOADING) log("Loading " + plugin_sources.length + " plugins:")
     for (var i = 0, plugin_source; plugin_source = plugin_sources[i]; i++) {
-        if (LOG_PLUGIN_LOADING) log("..... " + plugin_source)
-        javascript_source(plugin_source)
-        //
-        var plugin_class = basename(plugin_source)
-        if (LOG_PLUGIN_LOADING) log(".......... instantiating \"" + plugin_class + "\"")
-        plugins.push(new Function("return new " + plugin_class)())
+        load_plugin(plugin_source)
     }
     // 2) load doctype implementations
     if (LOG_PLUGIN_LOADING) log("Loading " + doctype_impl_sources.length + " doctype implementations:")
     for (var i = 0, doctype_impl_src; doctype_impl_src = doctype_impl_sources[i]; i++) {
         load_doctype_impl(doctype_impl_src)
     }
-    // 3) load CSS stylesheets
+    // 3) load field renderers
+    if (LOG_PLUGIN_LOADING) log("Loading " + field_renderer_sources.length + " data field renderers:")
+    for (var i = 0, field_renderer_source; field_renderer_source = field_renderer_sources[i]; i++) {
+        if (LOG_PLUGIN_LOADING) log("..... " + field_renderer_source)
+        javascript_source(field_renderer_source)
+    }
+    // 4) load CSS stylesheets
     if (LOG_PLUGIN_LOADING) log("Loading " + css_stylesheets.length + " CSS stylesheets:")
     for (var i = 0, css_stylesheet; css_stylesheet = css_stylesheets[i]; i++) {
         if (LOG_PLUGIN_LOADING) log("..... " + css_stylesheet)
@@ -482,14 +494,24 @@ function load_plugins() {
     }
 }
 
+function load_plugin(plugin_source) {
+    // load
+    if (LOG_PLUGIN_LOADING) log("..... " + plugin_source)
+    javascript_source(plugin_source)
+    // instantiate
+    var plugin_class = basename(plugin_source)
+    if (LOG_PLUGIN_LOADING) log(".......... instantiating \"" + plugin_class + "\"")
+    plugins.push(new_object(plugin_class))
+}
+
 function load_doctype_impl(doctype_impl_src) {
+    // load
     if (LOG_PLUGIN_LOADING) log("..... " + doctype_impl_src)
     javascript_source(doctype_impl_src)
-    //
+    // instantiate
     var doctype_class = to_camel_case(basename(doctype_impl_src))
     if (LOG_PLUGIN_LOADING) log(".......... instantiating \"" + doctype_class + "\"")
-    var doctype_impl = new Function("return new " + doctype_class)()
-    doctype_impls[doctype_class] = doctype_impl
+    doctype_impls[doctype_class] = new_object(doctype_class)
 }
 
 // ---
@@ -750,7 +772,7 @@ function remove_topic_type(type_uri) {
 
 function get_type(topic) {
     if (!topic.type_uri) {
-        throw "ERROR (get_type): topic has no type_uri attribute. Topic: " + JSON.stringify(topic)
+        alert("ERROR (get_type):\n\nTopic has no type_uri attribute.\n\ntopic=" + JSON.stringify(topic))
     }
     //
     return topic_types[topic.type_uri]
@@ -846,7 +868,8 @@ function set_topic_type_label(type_uri, label) {
 function get_value(topic, field_uri) {
     var value = topic.properties[field_uri]
     if (value == undefined) {
-        // alert("WARNING (get_value): Data field \"" + field_uri + "\" has no value.\n\nTopic: " + JSON.stringify(topic))
+        // alert("WARNING (get_value): Data field \"" + field_uri + "\" has no value.\n\n" +
+        //    "Topic: " + JSON.stringify(topic))
         value = ""
     }
     return value
@@ -873,11 +896,6 @@ function topic_label(topic) {
 function type_label(type_uri) {
     // Note: the type.view.label attribute is mandatory
     return topic_types[type_uri].view.label || "<i>unnamed type</i>"
-}
-
-function field_label(field) {
-    // Note: the field.view.label attribute is mandatory
-    return field.view.label
 }
 
 
@@ -976,6 +994,28 @@ function clone(obj) {
         return JSON.parse(JSON.stringify(obj))
     } catch (e) {
         alert("ERROR (clone): " + JSON.stringify(e))
+    }
+}
+
+/**
+ * Constructs a new object dynamically.
+ *
+ * @param   class_name  Name of class.
+ * @param   <varargs>   Variable number of arguments. Passed to the constructor.
+ */
+function new_object(class_name) {
+    if (arguments.length == 1) {
+        return new Function("return new " + class_name)()
+    } else if (arguments.length == 2) {
+        return new Function("arg1", "return new " + class_name + "(arg1)")(arguments[1])
+    } else if (arguments.length == 3) {
+        return new Function("arg1", "arg2", "return new " + class_name + "(arg1, arg2)")(arguments[1], arguments[2])
+    } else if (arguments.length == 4) {
+        return new Function("arg1", "arg2", "arg3", "return new " + class_name + "(arg1, arg2, arg3)")
+                                                                        (arguments[1], arguments[2], arguments[3])
+    } else {
+        alert("ERROR (new_object): too much arguments (" +
+            (arguments.length - 1) + "), maximum is 3.\nclass_name=" + class_name)
     }
 }
 
