@@ -13,7 +13,7 @@ var EXCLUDE_TYPES_FROM_MENUS = [
 ]
 
 var ENABLE_LOGGING = true
-var LOG_PLUGIN_LOADING = true
+var LOG_PLUGIN_LOADING = false
 var LOG_IMAGE_LOADING = false
 var LOG_AJAX_REQUESTS = false
 var LOG_GUI = false
@@ -28,7 +28,7 @@ var canvas              // the canvas that displays the topic map (a Canvas obje
 var is_form_shown       // true if a form is shown (used to fire the "post_submit_form" event)
 //
 var plugin_sources = []
-var plugins = []
+var plugins = {}            // key: plugin class, value: plugin instance
 var doctype_impl_sources = []
 var doctype_impls = {}
 var field_renderer_sources = []
@@ -501,7 +501,7 @@ function load_plugin(plugin_source) {
     // instantiate
     var plugin_class = basename(plugin_source)
     if (LOG_PLUGIN_LOADING) log(".......... instantiating \"" + plugin_class + "\"")
-    plugins.push(new_object(plugin_class))
+    plugins[plugin_class] = new_object(plugin_class)
 }
 
 function load_doctype_impl(doctype_impl_src) {
@@ -524,7 +524,8 @@ function load_doctype_impl(doctype_impl_src) {
  */
 function trigger_hook(hook_name) {
     var result = []
-    for (var i = 0, plugin; plugin = plugins[i]; i++) {
+    for (var plugin_class in plugins) {
+        var plugin = get_plugin(plugin_class)
         if (plugin[hook_name]) {
             // 1) Trigger hook
             if (arguments.length == 1) {
@@ -556,6 +557,10 @@ function trigger_doctype_hook(doc, hook_name, args) {
     if (doctype_impl[hook_name]) {
         return doctype_impl[hook_name](args)
     }
+}
+
+function get_plugin(plugin_class) {
+    return plugins[plugin_class]
 }
 
 function get_doctype_impl(topic) {
@@ -994,6 +999,15 @@ function clone(obj) {
         return JSON.parse(JSON.stringify(obj))
     } catch (e) {
         alert("ERROR (clone): " + JSON.stringify(e))
+    }
+}
+
+/**
+ * Copies all attributes from source object to destination object.
+ */
+function copy(src_obj, dst_obj) {
+    for (var key in src_obj) {
+        dst_obj[key] = src_obj[key]
     }
 }
 

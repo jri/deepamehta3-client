@@ -19,7 +19,7 @@ function TextFieldRenderer(doc, field, rel_topics) {
             }
             return input
         case "multi line":
-            var lines = field.editor || DEFAULT_AREA_HEIGHT
+            var lines = field.lines || DEFAULT_AREA_HEIGHT
             return $("<textarea>").attr({
                 "field-uri": field.uri, rows: lines, cols: DEFAULT_FIELD_WIDTH
             }).text(get_value(doc, field.uri))
@@ -35,7 +35,8 @@ function TextFieldRenderer(doc, field, rel_topics) {
         case "multi line":
             return $.trim($("[field-uri=" + field.uri + "]").val())
         default:
-            alert("get_field_content: unexpected field editor (" + field.editor + ")")
+            alert("WARNING (TextFieldRenderer.read_form_value):\n\nField \"" + field.label +
+                "\" has unexpected editor: \"" + field.editor + "\".\n\nfield=" + JSON.stringify(field))
         }
     }
 }

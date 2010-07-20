@@ -94,10 +94,17 @@ function PlainDocument() {
         this.topic_buffer = {}
         empty_detail_panel(true)
 
+        trigger_hook("pre_render_form", topic)
+
         for (var i = 0, field; field = get_type(topic).fields[i]; i++) {
             // render field label
             render.field_label(field)
             // create renderer
+            if (!field.renderer_class) {
+                alert("WARNING (PlainDocument.render_form):\n\nField \"" + field.label +
+                    "\" has no field renderer.\n\nfield=" + JSON.stringify(field))
+                continue
+            }
             var rel_topics = related_topics(field)
             field_renderers[field.uri] = new_object(field.renderer_class, topic, field, rel_topics)
             // render form element
@@ -184,9 +191,8 @@ function PlainDocument() {
                     selected_topic.properties[field.uri] = value
                 }
             } else {
-                alert("WARNING (PlainDocument.do_save):\nField renderer for field \"" +
-                    field.uri + "\" of topic " + selected_topic.id + " returns no value.\n" +
-                    "field=" + JSON.stringify(field))
+                alert("WARNING (PlainDocument.do_save):\n\nRenderer for field \"" + field.label + "\" returns " +
+                    "no value.\n\ntopic ID=" + selected_topic.id + "\nfield=" + JSON.stringify(field))
             }
         }
         // 2) update DB
@@ -258,9 +264,8 @@ function PlainDocument() {
         }
         // assertion
         if (this.id.substr(0, 6) != "field_") {
-            alert("WARNING (PlainDocument.autocomplete):\n" +
-                "document " + selected_topic.id + " has unexpected element id (" + this.id + ").\n" +
-                "It is expected to begin with \"field_\"")
+            alert("WARNING (PlainDocument.autocomplete):\n\nTopic " + selected_topic.id +
+                " has unexpected element id: \"" + this.id + "\".\n\nIt is expected to begin with \"field_\".")
             return
         }
         // Holds the matched items (model). These items are rendered as pulldown menu (the "autocomplete list", view).

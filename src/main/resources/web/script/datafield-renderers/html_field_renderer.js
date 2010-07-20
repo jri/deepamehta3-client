@@ -24,7 +24,7 @@ function HTMLFieldRenderer(doc, field, rel_topics) {
     }
 
     this.render_form_element = function() {
-        var lines = field.editor || DEFAULT_AREA_HEIGHT
+        var lines = field.lines || DEFAULT_AREA_HEIGHT
         var textarea = $("<textarea>")
         textarea.attr({id: "field_" + field.uri, rows: lines, cols: DEFAULT_FIELD_WIDTH})
         textarea.text(doc.properties[field.uri])
