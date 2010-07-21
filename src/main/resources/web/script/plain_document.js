@@ -109,7 +109,12 @@ function PlainDocument() {
             field_renderers[field.uri] = new_object(field.renderer_class, topic, field, rel_topics)
             // render form element
             var html = trigger_renderer_hook(field, "render_form_element")
-            $("#detail-panel").append($("<div>").addClass("field-value").append(html))
+            if (html !== undefined) {
+                $("#detail-panel").append($("<div>").addClass("field-value").append(html))
+            } else {
+                alert("WARNING (PlainDocument.render_form):\n\nRenderer for field \"" + field.label + "\" provides " +
+                    "no form element.\n\ntopic ID=" + topic.id + "\nfield=" + JSON.stringify(field))
+            }
             //
             trigger_renderer_hook(field, "post_render_form_element")
         }
@@ -191,8 +196,8 @@ function PlainDocument() {
                     selected_topic.properties[field.uri] = value
                 }
             } else {
-                alert("WARNING (PlainDocument.do_save):\n\nRenderer for field \"" + field.label + "\" returns " +
-                    "no value.\n\ntopic ID=" + selected_topic.id + "\nfield=" + JSON.stringify(field))
+                alert("WARNING (PlainDocument.do_save):\n\nRenderer for field \"" + field.label + "\" provides " +
+                    "no form value.\n\ntopic ID=" + selected_topic.id + "\nfield=" + JSON.stringify(field))
             }
         }
         // 2) update DB

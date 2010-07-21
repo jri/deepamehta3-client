@@ -1083,6 +1083,10 @@ function format_date(date) {
     return date ? $.datepicker.formatDate("D, M d, yy", new Date(date)) : ""
 }
 
+function format_timestamp(timestamp) {
+    return new Date(timestamp).toLocaleString()
+}
+
 function mime_type(path) {
     switch (filename_ext(path)) {
     case "gif":
