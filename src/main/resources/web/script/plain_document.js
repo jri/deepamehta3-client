@@ -89,10 +89,10 @@ function PlainDocument() {
     this.render_form = function(topic) {
 
         field_renderers = {}            // key: field URI, value: renderer object
-
-        plain_doc = this
         this.topic_buffer = {}
-        empty_detail_panel(true)
+        plain_doc = this
+
+        empty_detail_panel()
 
         trigger_hook("pre_render_form", topic)
 
@@ -197,6 +197,9 @@ function PlainDocument() {
         }
         // 2) update DB
         update_topic(selected_topic, old_properties)
+        //
+        trigger_hook("post_submit_form", selected_topic)
+        //
         // 3) update GUI
         var topic_id = selected_topic.id
         var label = topic_label(selected_topic)
@@ -208,6 +211,9 @@ function PlainDocument() {
     }
 
     function do_cancel_editing() {
+        //
+        trigger_hook("post_submit_form", selected_topic)
+        //
         show_document()
     }
 

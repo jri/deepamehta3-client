@@ -42,12 +42,4 @@ function HTMLFieldRenderer(doc, field, rel_topics) {
     this.read_form_value = function() {
         return tinyMCE.get("field_" + field.uri).getContent()
     }
-
-    this.post_submit_form = function() {
-        if (!tinyMCE.execCommand("mceRemoveControl", false, "field_" + field.uri)) {
-            alert("mceRemoveControl not executed")
-        } else {
-            alert("TinyMCE instance removed")
-        }
-    }
 }

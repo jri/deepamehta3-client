@@ -25,7 +25,6 @@ var render = new RenderHelper()
 var selected_topic      // topic document being displayed, or null if no one is currently displayed (a Topic object)
 var current_rel_id      // ID of relation being activated, or null if no one is currently activated
 var canvas              // the canvas that displays the topic map (a Canvas object)
-var is_form_shown       // true if a form is shown (used to fire the "post_submit_form" event)
 //
 var plugin_sources = []
 var plugins = {}            // key: plugin class, value: plugin instance
@@ -44,7 +43,7 @@ if (ENABLE_LOGGING) {
     var log_window = window.open()
 }
 
-// --- register core facilities ---
+// --- register default modules ---
 register_doctype_implementation("script/plain_document.js")
 //
 register_field_renderer("script/datafield-renderers/text_field_renderer.js")
@@ -54,8 +53,8 @@ register_field_renderer("script/datafield-renderers/html_field_renderer.js")
 register_field_renderer("script/datafield-renderers/reference_field_renderer.js")
 //
 register_plugin("script/dm3_fulltext.js")
+register_plugin("script/dm3_tinymce.js")
 // register_plugin("script/dm3_datafields.js")
-// register_plugin("script/dm3_tinymce.js")
 // css_stylesheet("style/main.css")     // layout flatters while loading
 
 $(document).ready(function() {
@@ -738,12 +737,7 @@ function create_image(src) {
 
 //
 
-function empty_detail_panel(is_form) {
-    if (is_form_shown) {
-        trigger_hook("post_submit_form", selected_topic)
-    }
-    is_form_shown = is_form
-    //
+function empty_detail_panel() {
     $("#detail-panel").empty()
     $("#lower-toolbar").empty()
 }
