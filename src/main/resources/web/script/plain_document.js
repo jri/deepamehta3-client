@@ -102,7 +102,7 @@ function PlainDocument() {
         trigger_hook("pre_render_form", topic)
 
         for (var i = 0, field; field = get_type(topic).fields[i]; i++) {
-            if (field.read_only) {
+            if (!field.editable) {
                 continue
             }
             // create renderer
@@ -195,7 +195,7 @@ function PlainDocument() {
         var old_properties = clone(selected_topic.properties)
         // read out values from GUI elements and update the topic
         for (var i = 0, field; field = get_type(selected_topic).fields[i]; i++) {
-            if (field.read_only) {
+            if (!field.editable) {
                 continue
             }
             //
