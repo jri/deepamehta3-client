@@ -51,7 +51,12 @@ function PlainDocument() {
                 field_renderers[field.uri] = new_object(field.renderer_class, topic, field, rel_topics)
                 // render field
                 var html = trigger_renderer_hook(field, "render_field")
-                $("#detail-panel").append($("<div>").addClass("field-value").append(html))
+                if (html !== undefined) {
+                    $("#detail-panel").append($("<div>").addClass("field-value").append(html))
+                } else {
+                    alert("WARNING (PlainDocument.render_document):\n\nRenderer for field \"" + field.label + "\" " +
+                        "returned no field.\n\ntopic ID=" + topic.id + "\nfield=" + JSON.stringify(field))
+                }
             }
 
             function related_topics(field) {
@@ -97,8 +102,9 @@ function PlainDocument() {
         trigger_hook("pre_render_form", topic)
 
         for (var i = 0, field; field = get_type(topic).fields[i]; i++) {
-            // render field label
-            render.field_label(field)
+            if (field.read_only) {
+                continue
+            }
             // create renderer
             if (!field.renderer_class) {
                 alert("WARNING (PlainDocument.render_form):\n\nField \"" + field.label +
@@ -107,16 +113,17 @@ function PlainDocument() {
             }
             var rel_topics = related_topics(field)
             field_renderers[field.uri] = new_object(field.renderer_class, topic, field, rel_topics)
+            // render field label
+            render.field_label(field)
             // render form element
             var html = trigger_renderer_hook(field, "render_form_element")
             if (html !== undefined) {
                 $("#detail-panel").append($("<div>").addClass("field-value").append(html))
+                trigger_renderer_hook(field, "post_render_form_element")
             } else {
-                alert("WARNING (PlainDocument.render_form):\n\nRenderer for field \"" + field.label + "\" provides " +
-                    "no form element.\n\ntopic ID=" + topic.id + "\nfield=" + JSON.stringify(field))
+                alert("WARNING (PlainDocument.render_form):\n\nRenderer for field \"" + field.label + "\" " +
+                    "returned no form element.\n\ntopic ID=" + topic.id + "\nfield=" + JSON.stringify(field))
             }
-            //
-            trigger_renderer_hook(field, "post_render_form_element")
         }
 
         function related_topics(field) {
@@ -188,6 +195,10 @@ function PlainDocument() {
         var old_properties = clone(selected_topic.properties)
         // read out values from GUI elements and update the topic
         for (var i = 0, field; field = get_type(selected_topic).fields[i]; i++) {
+            if (field.read_only) {
+                continue
+            }
+            //
             var value = trigger_renderer_hook(field, "read_form_value")
             // Note: undefined value is an error (means: field renderer returned no value).
             // null is a valid result (means: field renderer prevents the field from being updated).
@@ -196,7 +207,7 @@ function PlainDocument() {
                     selected_topic.properties[field.uri] = value
                 }
             } else {
-                alert("WARNING (PlainDocument.do_save):\n\nRenderer for field \"" + field.label + "\" provides " +
+                alert("WARNING (PlainDocument.do_save):\n\nRenderer for field \"" + field.label + "\" returned " +
                     "no form value.\n\ntopic ID=" + selected_topic.id + "\nfield=" + JSON.stringify(field))
             }
         }
