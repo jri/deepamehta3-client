@@ -42,8 +42,9 @@ body {
 .title {
     margin-top: 1em;
     margin-bottom: 0.6em;
-    font-size: 180%;
+    font-size: 170%;
     font-weight: bold;
+    line-height: 1.1em;
 }
 
 .field-name {

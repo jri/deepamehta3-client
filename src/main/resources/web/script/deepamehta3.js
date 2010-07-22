@@ -12,7 +12,7 @@ var EXCLUDE_TYPES_FROM_MENUS = [
     "de/deepamehta/core/topictype/Plugin"
 ]
 
-var ENABLE_LOGGING = true
+var ENABLE_LOGGING = false
 var LOG_PLUGIN_LOADING = false
 var LOG_IMAGE_LOADING = false
 var LOG_AJAX_REQUESTS = false
@@ -51,6 +51,9 @@ register_field_renderer("script/datafield-renderers/number_field_renderer.js")
 register_field_renderer("script/datafield-renderers/date_field_renderer.js")
 register_field_renderer("script/datafield-renderers/html_field_renderer.js")
 register_field_renderer("script/datafield-renderers/reference_field_renderer.js")
+//
+register_field_renderer("script/datafield-renderers/title_renderer.js")
+register_field_renderer("script/datafield-renderers/body_text_renderer.js")
 //
 register_plugin("script/dm3_fulltext.js")
 register_plugin("script/dm3_tinymce.js")

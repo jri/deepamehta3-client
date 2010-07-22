@@ -50,9 +50,10 @@ function PlainDocument() {
                 var rel_topics = related_topics(field)
                 field_renderers[field.uri] = new_object(field.renderer_class, topic, field, rel_topics)
                 // render field
-                var html = trigger_renderer_hook(field, "render_field")
+                var field_value_div = $("<div>").addClass("field-value")
+                var html = trigger_renderer_hook(field, "render_field", field_value_div)
                 if (html !== undefined) {
-                    $("#detail-panel").append($("<div>").addClass("field-value").append(html))
+                    $("#detail-panel").append(field_value_div.append(html))
                 } else {
                     alert("WARNING (PlainDocument.render_document):\n\nRenderer for field \"" + field.label + "\" " +
                         "returned no field.\n\ntopic ID=" + topic.id + "\nfield=" + JSON.stringify(field))
@@ -259,12 +260,22 @@ function PlainDocument() {
 
     /* Field Renderer */
 
+    /**
+     * Triggers a renderer hook for the given field.
+     *
+     * @param   hook_name   Name of the renderer hook to trigger.
+     * @param   <varargs>   Variable number of arguments. Passed to the hook.
+     */
     function trigger_renderer_hook(field, hook_name) {
         // Lookup renderer
         var field_renderer = field_renderers[field.uri]
         // Trigger the hook only if it is defined (a renderer must not define all hooks).
         if (field_renderer[hook_name]) {
-            return field_renderer[hook_name]()
+            if (arguments.length == 2) {
+                return field_renderer[hook_name]()
+            } else if (arguments.length == 3) {
+                return field_renderer[hook_name](arguments[2])
+            }
         }
     }
 
