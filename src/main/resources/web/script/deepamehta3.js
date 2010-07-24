@@ -1,6 +1,7 @@
 // Settings
 var CORE_SERVICE_URI = "/core"
 var SEARCH_FIELD_WIDTH = 16    // in chars
+var UPLOAD_DIALOG_WIDTH = "50em"
 var GENERIC_TOPIC_ICON_SRC = "images/gray-dot.png"
 
 var EXCLUDE_TYPES_FROM_MENUS = [
@@ -74,6 +75,11 @@ $(document).ready(function() {
     $("#document-form").submit(submit_document)
     detail_panel_width = $("#detail-panel").width()
     log("Detail panel width: " + detail_panel_width)
+    // The upload dialog
+    $("#upload-dialog").dialog({
+        modal: true, autoOpen: false, draggable: false, resizable: false, width: UPLOAD_DIALOG_WIDTH
+    })
+    $("#upload-target").load(upload_complete)
     //
     canvas = new Canvas()
     //
@@ -633,12 +639,27 @@ function create_special_select() {
     return $("<select>").attr("id", "special-select")
 }
 
-//
+// - File upload -
+
+/**
+ * @param   command     the command send to the server along with the selected file (a string)
+ */
+function show_upload_dialog(command) {
+    $("#upload-dialog-command").attr("value", command)
+    $("#upload-dialog").dialog("open")
+}
+
+function upload_complete() {
+    $("#upload-dialog").dialog("close")
+    show_document()
+}
+
+// ---
 
 /**
  * Adds the topic to the canvas, highlights it, and refreshes the canvas.
  *
- * @param   doc     a topic document
+ * @param   topic       Topic to add (a Topic object).
  */
 function add_topic_to_canvas(topic) {
     canvas.add_topic(topic.id, topic.type_uri, topic_label(topic), true, true)

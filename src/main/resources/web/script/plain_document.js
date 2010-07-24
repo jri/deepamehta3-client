@@ -5,14 +5,8 @@ function PlainDocument() {
     // Settings
     DEFAULT_FIELD_WIDTH = 60    // in chars
     DEFAULT_AREA_HEIGHT = 30    // in chars
-    UPLOAD_DIALOG_WIDTH = "50em"
     DELETE_DIALOG_WIDTH = 350   // in pixel
 
-    // The upload dialog
-    $("#attachment_dialog").dialog({
-        modal: true, autoOpen: false, draggable: false, resizable: false, width: UPLOAD_DIALOG_WIDTH
-    })
-    $("#upload-target").load(upload_complete)
     // The delete dialog
     $("#delete_dialog").dialog({
         modal: true, autoOpen: false, draggable: false, resizable: false, width: DELETE_DIALOG_WIDTH,
@@ -84,10 +78,8 @@ function PlainDocument() {
 
         function render_buttons() {
             $("#lower-toolbar").append("<button id='edit-button' type='button'>")
-            $("#lower-toolbar").append("<button id='attach-button' type='button'>")
             $("#lower-toolbar").append("<button id='delete-button' type='button'>")
             ui.button("edit-button", edit_document, "Edit", "pencil")
-            ui.button("attach-button", attach_file, "Upload Attachment", "document")
             ui.button("delete-button", confirm_delete, "Delete", "trash")
         }
     }
@@ -231,19 +223,6 @@ function PlainDocument() {
         //
         trigger_hook("post_submit_form", selected_topic)
         //
-        show_document()
-    }
-
-    /* Attachments */
-
-    function attach_file() {
-        $("#attachment_form").attr("action", dmc.uri + selected_topic.id)
-        $("#attachment_form_rev").attr("value", selected_topic._rev)
-        $("#attachment_dialog").dialog("open")
-    }
-
-    function upload_complete() {
-        $("#attachment_dialog").dialog("close")
         show_document()
     }
 
