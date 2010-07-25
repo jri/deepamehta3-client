@@ -552,19 +552,25 @@ function Canvas() {
     /*** GUI Helper ***/
 
     function build_view() {
+        var canvas = document.createElement("canvas")
+        // initialize ExplorerCanvas
+        if (typeof(G_vmlCanvasManager) != "undefined") {
+            G_vmlCanvasManager.initElement(canvas)
+        }
+        //
         calculate_size()
-        var canvas_elem = $("<canvas>").attr({id: "canvas", width: canvas_width, height: canvas_height})
+        var canvas_elem = $(canvas).attr({id: "canvas", width: canvas_width, height: canvas_height})
         $("#canvas-panel").append(canvas_elem)
         $("#canvas-panel").mouseleave(mouseleave)
         cox = canvas_elem.offset().left
         coy = canvas_elem.offset().top
         if (LOG_GUI) log("..... new canvas offset: x=" + cox + " y=" + coy)
-        ctx = canvas_elem.get(0).getContext("2d")
+        ctx = canvas.getContext("2d")
         // bind events
         canvas_elem.click(clicked)
         canvas_elem.mousedown(mousedown)
         canvas_elem.mousemove(mousemove)
-        canvas_elem.get(0).oncontextmenu = contextmenu
+        canvas.oncontextmenu = contextmenu
     }
 
     function calculate_size() {
