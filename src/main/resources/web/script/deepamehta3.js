@@ -79,7 +79,6 @@ $(document).ready(function() {
     $("#upload-dialog").dialog({
         modal: true, autoOpen: false, draggable: false, resizable: false, width: UPLOAD_DIALOG_WIDTH
     })
-    $("#upload-target").load(upload_complete)
     //
     canvas = new Canvas()
     //
@@ -642,16 +641,26 @@ function create_special_select() {
 // - File upload -
 
 /**
- * @param   command     the command send to the server along with the selected file (a string)
+ * @param   command     the command (a string) send to the server along with the selected file.
+ * @param   callback    the function that is invoked once the file has been uploaded and processed at server-side.
+ *                      One argument is passed to that function: the object (deserialzed JSON) returned by the
+ *                      (server-side) executeCommandHook.
  */
-function show_upload_dialog(command) {
+function show_upload_dialog(command, callback) {
     $("#upload-dialog-command").attr("value", command)
     $("#upload-dialog").dialog("open")
-}
+    // bind callback function, using artifact ID as event namespace
+    $("#upload-target").unbind("load.deepamehta3-client")
+    $("#upload-target").bind("load.deepamehta3-client", upload_complete(callback))
 
-function upload_complete() {
-    $("#upload-dialog").dialog("close")
-    show_document()
+    function upload_complete(callback) {
+        return function() {
+            $("#upload-dialog").dialog("close")
+            // Note: iframes (the upload target) must be DOM manipulated as frames
+            var result = JSON.parse($("pre", window.frames["upload-target"].document).text())
+            callback(result)
+        }
+    }
 }
 
 // ---
