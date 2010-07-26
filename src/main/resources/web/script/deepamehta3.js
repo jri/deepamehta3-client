@@ -657,8 +657,12 @@ function show_upload_dialog(command, callback) {
         return function() {
             $("#upload-dialog").dialog("close")
             // Note: iframes (the upload target) must be DOM manipulated as frames
-            var result = JSON.parse($("pre", window.frames["upload-target"].document).text())
-            callback(result)
+            var result = $("pre", window.frames["upload-target"].document).text()
+            try {
+                callback(JSON.parse(result))
+            } catch (e) {
+                alert("No valid server response: " + result + "\n(" + JSON.stringify(e) + ")")
+            }
         }
     }
 }
