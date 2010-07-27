@@ -1177,7 +1177,7 @@ function create_image_tracker(callback_func) {
         var types = []      // topic types whose images are tracked
 
         this.add_type = function(type) {
-            if (types.indexOf(type) == -1) {
+            if (!contains(types, type)) {
                 types.push(type)
             }
         }
