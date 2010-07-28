@@ -117,7 +117,7 @@ function Canvas() {
     this.remove_relation = function(id, refresh_canvas) {
         var i = assoc_index(id)
         // Note: it is not an error if the relation is not present on the canvas. This can happen
-        // for prgrammatically deleted relations, e.g. when updating a data field of type "relation".
+        // for prgrammatically deleted relations, e.g. when updating a data field of type "reference".
         if (i == -1) {
             return
             // throw "remove_relation: relation not on canvas (" + id + ")"

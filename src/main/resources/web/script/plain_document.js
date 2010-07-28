@@ -36,13 +36,13 @@ function PlainDocument() {
         function render_fields() {
             for (var i = 0, field; field = get_type(topic).fields[i]; i++) {
                 // create renderer
-                if (!field.renderer_class) {
+                if (!field.js_renderer_class) {
                     alert("WARNING (PlainDocument.render_document):\n\nField \"" + field.label +
                         "\" has no field renderer.\n\nfield=" + JSON.stringify(field))
                     continue
                 }
                 var rel_topics = related_topics(field)
-                field_renderers[field.uri] = new_object(field.renderer_class, topic, field, rel_topics)
+                field_renderers[field.uri] = new_object(field.js_renderer_class, topic, field, rel_topics)
                 // render field
                 var field_value_div = $("<div>").addClass("field-value")
                 var html = trigger_renderer_hook(field, "render_field", field_value_div)
@@ -55,7 +55,7 @@ function PlainDocument() {
             }
 
             function related_topics(field) {
-                if (field.data_type == "relation") {
+                if (field.data_type == "reference") {
                     var topics = get_relation_field_content(topic.id, field)
                     defined_relation_topics = defined_relation_topics.concat(topics)
                     return topics
@@ -99,13 +99,13 @@ function PlainDocument() {
                 continue
             }
             // create renderer
-            if (!field.renderer_class) {
+            if (!field.js_renderer_class) {
                 alert("WARNING (PlainDocument.render_form):\n\nField \"" + field.label +
                     "\" has no field renderer.\n\nfield=" + JSON.stringify(field))
                 continue
             }
             var rel_topics = related_topics(field)
-            field_renderers[field.uri] = new_object(field.renderer_class, topic, field, rel_topics)
+            field_renderers[field.uri] = new_object(field.js_renderer_class, topic, field, rel_topics)
             // render field label
             render.field_label(field)
             // render form element
@@ -120,7 +120,7 @@ function PlainDocument() {
         }
 
         function related_topics(field) {
-            if (field.data_type == "relation") {
+            if (field.data_type == "reference") {
                 var topics = get_relation_field_content(topic.id, field)
                 // buffer current topic selection to compare it at submit time
                 plain_doc.topic_buffer[field.uri] = topics
@@ -166,12 +166,12 @@ function PlainDocument() {
     /* Helper */
 
     /**
-     * Returns the content of a field of type "relation".
+     * Returns the content of a field of type "reference".
      *
      * @return  Array of Topic objects.
      */
     function get_relation_field_content(topic_id, field) {
-        return dmc.get_related_topics(topic_id, [field.related_type_uri], [], ["SEARCH_RESULT"])
+        return dmc.get_related_topics(topic_id, [field.ref_topic_type_uri], [], ["SEARCH_RESULT"])
     }
 
     /* ---------------------------------------- Private Methods ---------------------------------------- */

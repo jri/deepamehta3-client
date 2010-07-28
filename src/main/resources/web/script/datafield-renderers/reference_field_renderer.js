@@ -13,7 +13,7 @@ function ReferenceFieldRenderer(doc, field, rel_topics) {
     this.render_form_element = function() {
         switch (field.editor) {
         case "checkboxes":
-            var topics = dmc.get_topics(field.related_type_uri)
+            var topics = dmc.get_topics(field.ref_topic_type_uri)
             var relation_div = $("<div>")
             for (var i = 0, topic; topic = topics[i]; i++) {
                 var attr = {type: "checkbox", id: topic.id, name: "relation_" + field.uri}
@@ -29,7 +29,7 @@ function ReferenceFieldRenderer(doc, field, rel_topics) {
     }
 
     this.read_form_value = function() {
-        // TODO: updating relation fields should run at server-side (in a transaction)
+        // TODO: updating reference fields should run at server-side (in a transaction)
         switch (field.editor) {
         case "checkboxes":
             $("input:checkbox[name=relation_" + field.uri + "]").each(

@@ -35,7 +35,7 @@ var field_renderer_sources = []
 var css_stylesheets = []
 //
 var topic_types = {}        // key: Type URI, value: type definition
-                            //                  (object with "uri", "fields", "view", and "implementation" attributes)
+                            //                (object with "uri", "fields", "view", and "js_renderer_class" attributes)
 var topic_type_icons = {}   // key: Type URI, value: icon (JavaScript Image object)
 var generic_topic_icon = create_image(GENERIC_TOPIC_ICON_SRC)
 
@@ -45,7 +45,7 @@ if (ENABLE_LOGGING) {
 }
 
 // --- register default modules ---
-register_doctype_implementation("script/plain_document.js")
+register_doctype_renderer("script/plain_document.js")
 //
 register_field_renderer("script/datafield-renderers/text_field_renderer.js")
 register_field_renderer("script/datafield-renderers/number_field_renderer.js")
@@ -431,7 +431,7 @@ function register_plugin(source_path) {
     plugin_sources.push(source_path)
 }
 
-function register_doctype_implementation(source_path) {
+function register_doctype_renderer(source_path) {
     doctype_impl_sources.push(source_path)
 }
 
@@ -482,8 +482,8 @@ function load_plugins() {
     for (var i = 0, plugin_source; plugin_source = plugin_sources[i]; i++) {
         load_plugin(plugin_source)
     }
-    // 2) load doctype implementations
-    if (LOG_PLUGIN_LOADING) log("Loading " + doctype_impl_sources.length + " doctype implementations:")
+    // 2) load doctype renderers
+    if (LOG_PLUGIN_LOADING) log("Loading " + doctype_impl_sources.length + " doctype renderers:")
     for (var i = 0, doctype_impl_src; doctype_impl_src = doctype_impl_sources[i]; i++) {
         load_doctype_impl(doctype_impl_src)
     }
@@ -558,9 +558,9 @@ function trigger_hook(hook_name) {
 }
 
 function trigger_doctype_hook(doc, hook_name, args) {
-    // Lookup implementation
+    // Lookup doctype renderer
     var doctype_impl = get_doctype_impl(doc)
-    // Trigger the hook only if it is defined (a doctype implementation must not define all hooks).
+    // Trigger the hook only if it is defined (a doctype renderer must not define all hooks).
     if (doctype_impl[hook_name]) {
         return doctype_impl[hook_name](args)
     }
@@ -571,7 +571,7 @@ function get_plugin(plugin_class) {
 }
 
 function get_doctype_impl(topic) {
-    return doctype_impls[get_type(topic).implementation]
+    return doctype_impls[get_type(topic).js_renderer_class]
 }
 
 function call_relation_function(function_name) {
@@ -743,8 +743,8 @@ function image_tag(src, css_class) {
  */
 function get_icon_src(type_uri) {
     // Note: topic_types[type_uri] is undefined if plugin is deactivated and content still exist.
-    if (topic_types[type_uri] && topic_types[type_uri].view.icon_src) {
-        return topic_types[type_uri].view.icon_src
+    if (topic_types[type_uri] && topic_types[type_uri].icon_src) {
+        return topic_types[type_uri].icon_src
     } else {
         return GENERIC_TOPIC_ICON_SRC
     }
@@ -819,7 +819,7 @@ function get_type(topic) {
  *
  * @param   type_topic  the topic representing the type (object with "id", "type_uri", and "properties" attributes).
  *
- * @return  the type definition (object with "uri", "fields", "view", and "implementation" attributes)
+ * @return  the type definition (object with "uri", "fields", "view", and "js_renderer_class" attributes)
  */
 function get_topic_type(type_topic) {
     var type_uri = type_topic.properties["de/deepamehta/core/property/TypeURI"]
@@ -896,7 +896,7 @@ function set_topic_type_uri(type_uri, new_type_uri) {
 }
 
 function set_topic_type_label(type_uri, label) {
-    topic_types[type_uri].view.label = label
+    topic_types[type_uri].label = label
 }
 
 // ---
@@ -920,8 +920,8 @@ function get_value(topic, field_uri) {
  */
 function topic_label(topic) {
     var type = get_type(topic)
-    // if there is a view.label_field declaration use the content of that field
-    var field_uri = type.view.label_field
+    // if there is a topic_label_field_uri declaration use the content of that field
+    var field_uri = type.topic_label_field_uri
     if (field_uri) {
         return topic.properties[field_uri] || ""
     }
@@ -930,8 +930,7 @@ function topic_label(topic) {
 }
 
 function type_label(type_uri) {
-    // Note: the type.view.label attribute is mandatory
-    return topic_types[type_uri].view.label || "<i>unnamed type</i>"
+    return topic_types[type_uri].label
 }
 
 
