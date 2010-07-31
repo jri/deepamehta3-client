@@ -82,11 +82,12 @@ $(document).ready(function() {
     //
     canvas = new Canvas()
     //
+    extend_rest_client()
+    //
     load_types()
     //
     // Note: in order to let a plugin DOM manipulate the GUI
     // the plugins must be loaded _after_ the GUI is set up.
-    // alert("Plugins:\n" + plugin_sources.join("\n"))
     register_plugins()
     load_plugins()
     //
@@ -103,6 +104,21 @@ $(document).ready(function() {
     $(window).load(function() {
         $("#detail-panel").height($("#canvas").height())
     })
+
+    function extend_rest_client() {
+
+        dmc.search_topics_and_create_bucket = function(text, field_uri, whole_word) {
+            var params = this.createRequestParameter({search: text, field: field_uri, wholeword: whole_word})
+            return this.request("GET", "/client/search" + params.to_query_string())
+        }
+
+        // Note: this method is actually part of the Type Search plugin.
+        // TODO: proper modulariuation. Either let the Type Search plugin provide its own REST resource (with
+        // another namespace again) or make the Type Search plugin an integral part of the Client plugin.
+        dmc.get_topics_and_create_bucket = function(type_uri) {
+            return this.request("GET", "/client/search/by_type/" + encodeURIComponent(type_uri))
+        }
+    }
 })
 
 // --- CouchDB API extensions ---
@@ -200,10 +216,10 @@ function searchmode_selected(menu_item) {
     // ui_menu() call for building the type menu will unnecessarily add the menu to the DOM because it finds
     // an element with the same ID on the page. A subsequent empty() would dispose the just added type menu
     // -- including its event handlers -- and the append() would eventually add the crippled type menu.
-    $("#search_widget").empty()
+    $("#search-widget").empty()
     var searchmode = menu_item.label
     var search_widget = trigger_hook("search_widget", searchmode)[0]
-    $("#search_widget").append(search_widget)
+    $("#search-widget").append(search_widget)
 }
 
 function search() {

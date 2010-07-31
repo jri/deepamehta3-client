@@ -23,8 +23,8 @@ function DeepaMehtaClient(core_service_uri) {
     }
 
     // FIXME: index parameter not used
-    this.search_topics = function(index, text, field_id, whole_word) {
-        var params = new RequestParameter({search: text, field: field_id, wholeword: whole_word})
+    this.search_topics = function(index, text, field_uri, whole_word) {
+        var params = new RequestParameter({search: text, field: field_uri, wholeword: whole_word})
         return request("GET", "/topic" + params.to_query_string())
     }
 
@@ -112,6 +112,10 @@ function DeepaMehtaClient(core_service_uri) {
      */
     this.request = function(method, uri, data) {
         return request(method, uri, data, true)
+    }
+
+    this.createRequestParameter = function(params) {
+        return new RequestParameter(params)
     }
 
     // --- Private Helpers ---
