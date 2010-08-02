@@ -20,14 +20,14 @@ function HTMLFieldRenderer(doc, field, rel_topics) {
         // field label
         render.field_label(field)
         // field value
-        return doc.properties[field.uri]
+        return get_value(doc, field.uri)
     }
 
     this.render_form_element = function() {
         var lines = field.lines || DEFAULT_AREA_HEIGHT
         var textarea = $("<textarea>")
         textarea.attr({id: "field_" + field.uri, rows: lines, cols: DEFAULT_FIELD_WIDTH})
-        textarea.text(doc.properties[field.uri])
+        textarea.text(get_value(doc, field.uri))
         return textarea
     }
 
