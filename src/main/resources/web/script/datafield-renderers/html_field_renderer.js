@@ -17,9 +17,9 @@ function HTMLFieldRenderer(doc, field, rel_topics) {
     }
 
     this.render_field = function() {
-        // field label
+        // render field label
         render.field_label(field)
-        // field value
+        // render field value
         return get_value(doc, field.uri)
     }
 

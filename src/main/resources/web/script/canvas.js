@@ -440,6 +440,65 @@ function Canvas() {
         $("#canvas-panel .contextmenu").remove()
     }
 
+    /**************************************** Drag and Drop ****************************************/
+
+    // Required. Otherwise we don't receive a drop.
+    function dragover () {
+        // Return false is Required. Otherwise we don't receive a drop.
+        return false
+    }
+
+    function drop(e) {
+        e.preventDefault();
+        if (contains(e.dataTransfer.types, "text/plain")) {
+            alert("Text dropped: " + e.dataTransfer.getData("text/plain"))
+        } else if (contains(e.dataTransfer.types, "Files")) {
+            if (typeof netscape != "undefined") {
+                process_drop_firefox(e.dataTransfer)
+            } else {
+                process_drop_safari(e.dataTransfer)
+            }
+        } else {
+            alert("ERROR: Dropped item can not be processed.\n\n" + inspect(e.dataTransfer))
+        }
+        return false;
+
+        function process_drop_firefox(dataTransfer) {
+            try {
+                for (var i = 0, file; file = e.dataTransfer.files[i]; i++) {
+                    if (file.type == "text/plain") {
+                        read_text_file(file)
+                    } else {
+                        netscape.security.PrivilegeManager.enablePrivilege("UniversalFileRead")
+                        var dropped_file = new File(file.name, file.mozFullPath, file.type, file.size)
+                        trigger_hook("file_dropped", dropped_file)
+                    }
+                }
+            } catch (e) {
+                alert("ERROR while accessing local file (" + e + ")")
+            }
+
+            function read_text_file(file) {
+                var reader = new FileReader()
+                reader.onload = function() {
+                    netscape.security.PrivilegeManager.enablePrivilege("UniversalFileRead")
+                    var dropped_file = new File(file.name, file.mozFullPath, file.type, file.size, reader.result)
+                    trigger_hook("file_dropped", dropped_file)
+                }
+                reader.readAsText(file)
+            }
+        }
+
+        function process_drop_safari(dataTransfer) {
+            var uri_list = dataTransfer.getData("text/uri-list")
+            var dropped_files = uri_list.split("\n")
+            for (var i = 0, file; file = dataTransfer.files[i]; i++) {
+                var dropped_file = new File(file.name, dropped_files[i], file.type, file.size)
+                trigger_hook("file_dropped", dropped_file)
+            }
+        }
+    }
+
     /**************************************** Helper ****************************************/
 
     /*** Model Helper ***/
@@ -571,6 +630,8 @@ function Canvas() {
         canvas_elem.mousedown(mousedown)
         canvas_elem.mousemove(mousemove)
         canvas.oncontextmenu = contextmenu
+        canvas.ondragover = dragover
+        canvas.ondrop = drop
     }
 
     function calculate_size() {
@@ -716,5 +777,15 @@ function Canvas() {
         this.id = id
         this.doc1_id = doc1_id
         this.doc2_id = doc2_id
+    }
+
+    // ---
+
+    function File(name, path, type, size, content) {
+        this.name = name
+        this.path = path
+        this.type = type
+        this.size = size
+        this.content = content
     }
 }
