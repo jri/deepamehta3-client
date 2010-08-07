@@ -490,10 +490,15 @@ function Canvas() {
         }
 
         function process_drop_safari(dataTransfer) {
-            var uri_list = dataTransfer.getData("text/uri-list")
-            var dropped_files = uri_list.split("\n")
+            // Note: Safari provides a "text/uri-list" data flavor which holds the URIs of the files dropped
+            var uri_list = dataTransfer.getData("text/uri-list").split("\n")
             for (var i = 0, file; file = dataTransfer.files[i]; i++) {
-                var dropped_file = new File(file.name, dropped_files[i], file.type, file.size)
+                var path = uri_list[i]
+                // Note: local file URIs provided by Safari begin with file://localhost which must be cut off
+                if (path.match(/^file:\/\/localhost(.*)/)) {
+                    path = RegExp.$1
+                }
+                var dropped_file = new File(file.name, path, file.type, file.size)
                 trigger_hook("file_dropped", dropped_file)
             }
         }
