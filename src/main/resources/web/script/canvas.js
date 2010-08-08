@@ -520,9 +520,9 @@ function Canvas() {
         set_highlight_topic(doc_id)
         draw()
         if (synchronous) {
-            show_document(doc_id)
+            render_topic(doc_id)
         } else {
-            setTimeout(show_document, 0, doc_id)
+            setTimeout(render_topic, 0, doc_id)
         }
     }
 

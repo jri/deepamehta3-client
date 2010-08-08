@@ -23,7 +23,7 @@ var dmc = new DeepaMehtaClient(CORE_SERVICE_URI)
 var ui = new UIHelper()
 var render = new RenderHelper()
 
-var selected_topic      // topic document being displayed, or null if no one is currently displayed (a Topic object)
+var selected_topic      // topic being displayed, or null if no one is currently displayed (a Topic object)
 var current_rel_id      // ID of relation being activated, or null if no one is currently activated
 var canvas              // the canvas that displays the topic map (a Canvas object)
 //
@@ -141,14 +141,11 @@ function searchmode_selected(menu_item) {
 
 function search() {
     try {
-        //
         var searchmode = ui.menu_item("searchmode-select").label
         var search_topic = trigger_hook("search", searchmode)[0]
-        //
-        show_document(search_topic.id)
-        add_topic_to_canvas(selected_topic)
+        add_topic_to_canvas(search_topic, "show")
     } catch (e) {
-        alert("Error while searching: " + JSON.stringify(e))
+        alert("ERROR while searching:\n\n" + JSON.stringify(e))
     }
     return false
 }
@@ -159,15 +156,15 @@ function special_selected(menu_item) {
 }
 
 /**
- * Reveals a document and optionally relate it to the current document.
+ * Reveals a topic and optionally relates the selected topic to it.
  *
- * @param   do_relate   Optional (boolean): if true a relation of type "SEARCH_RESULT" is created between
- *                      the document and the current document. If not specified false is assumed.
+ * @param   do_relate   Optional (boolean): if evaluates to true a relation of type "SEARCH_RESULT"
+ *                      is created between the selected topic and the revealed topic.
  */
 function reveal_topic(topic_id, do_relate) {
     // error check
     if (!document_exists(topic_id)) {
-        alert("Document " + topic_id + " doesn't exist. Possibly it has been deleted.")
+        alert("Topic " + topic_id + " doesn't exist. Possibly it has been deleted.")
         return
     }
     // create relation
@@ -179,43 +176,62 @@ function reveal_topic(topic_id, do_relate) {
         }
         canvas.add_relation(relation.id, relation.src_topic_id, relation.dst_topic_id)
     }
-    // reveal document
-    show_document(topic_id)
-    add_topic_to_canvas(selected_topic)
+    // reveal topic
+    add_topic_to_canvas(dmc.get_topic(topic_id), "show")
     canvas.focus_topic(topic_id)
 }
 
 /**
- * Fetches the document and displays it on the content panel. Updates global state (selected_topic),
- * provided the document could be fetched successfully.
- * If no document is specified, the current document is re-fetched.
- * If there is no current document the content panel is emptied.
+ * High-level utility method for plugin developers:
+ * Adds a topic to the canvas, selects it, and refreshes the detail panel according the specified action.
+ * Note: use this method only for topics existing in the DB already. Possibly call create_topic() before.
  *
- * @return  true if the document could be fetched successfully, false otherwise.
+ * @param   topic       Topic to add (a Topic object).
+ * @param   action      "show" - shows topic info in the detail panel
+ *                      "edit" - shows topic form in the detail panel
  */
-function show_document(doc_id) {
+function add_topic_to_canvas(topic, action) {
+    // update GUI (canvas)
+    canvas.add_topic(topic.id, topic.type_uri, topic_label(topic), true, true)
+    // update GUI (detail panel)
+    switch (action) {
+    case "show":
+        render_topic(topic.id)
+        break
+    case "edit":
+        // update global state
+        selected_topic = topic
+        //
+        edit_document()
+        break
+    default:
+        alert("WARNING (add_topic_to_canvas):\n\nUnexpected action: \"" + action + "\"")
+    }
+}
+
+/**
+ * Fetches the topic and displays it on the detail panel.
+ * Updates global state (selected_topic).
+ * If no topic is specified, the selected topic is re-fetched.
+ * If there is no selected topic the detail panel is emptied.
+ */
+function render_topic(doc_id) {
     if (doc_id == undefined) {
         if (selected_topic) {
             doc_id = selected_topic.id
         } else {
             empty_detail_panel()
-            return false
+            return
         }
     }
-    // fetch document
-    var doc = dmc.get_topic(doc_id)
-    //
-    if (doc == null) {
-        return false
-    }
+    // fetch topic
+    var topic = dmc.get_topic(doc_id)
+    // update global state
+    selected_topic = topic
     //
     empty_detail_panel()
-    // update global state
-    selected_topic = doc
     //
     trigger_doctype_hook(selected_topic, "render_document", selected_topic)
-    //
-    return true
 }
 
 function edit_document() {
@@ -283,7 +299,7 @@ function hide_topic(topic_id, is_part_of_delete_operation) {
     // detail panel
     if (topic_id == selected_topic.id) {
         selected_topic = null
-        show_document()
+        render_topic()
     } else {
         alert("WARNING: removed topic which was not selected\n" +
             "(removed=" + topic_id + " selected=" + selected_topic.id + ")")
@@ -513,7 +529,7 @@ function call_relation_function(function_name) {
         delete_relation(current_rel_id)
         // update view
         canvas.refresh()
-        show_document()
+        render_topic()
     } else {
         alert("call_relation_function: function \"" + function_name + "\" not implemented")
     }
@@ -534,12 +550,8 @@ function create_topic_from_menu() {
     if (!topic) {
         topic = create_topic(type_uri)
     }
-    //
-    selected_topic = topic
     // 2) update GUI
-    add_topic_to_canvas(selected_topic)
-    // 3) initiate editing
-    edit_document()
+    add_topic_to_canvas(topic, "edit")
 }
 
 // ---
@@ -603,22 +615,9 @@ function show_upload_dialog(command, callback) {
 // ---
 
 /**
- * Adds the topic to the canvas, highlights it, and refreshes the canvas.
- *
- * @param   topic       Topic to add (a Topic object).
- */
-function add_topic_to_canvas(topic) {
-    canvas.add_topic(topic.id, topic.type_uri, topic_label(topic), true, true)
-}
-
-//
-
-/**
  * @param   topics      Topics to render (array of Topic objects).
  */
-function render_topic_list(topics, render_function) {
-    render_function = render_function || render_topic
-    //
+function render_topic_list(topics) {
     var table = $("<table>")
     for (var i = 0, topic; topic = topics[i]; i++) {
         // icon
@@ -626,20 +625,13 @@ function render_topic_list(topics, render_function) {
         icon_td.append(render_topic_anchor(topic, type_icon_tag(topic.type_uri, "type-icon")))
         // label
         var topic_td = $("<td>").addClass("topic-label").addClass(i == topics.length - 1 ? "last-topic" : undefined)
-        var list_item = render_function(topic)
+        var list_item = $("<div>").append(render_topic_anchor(topic, topic.label))
         trigger_hook("render_topic_list_item", topic, list_item)
         topic_td.append(list_item)
         //
         table.append($("<tr>").append(icon_td).append(topic_td))
     }
     return table
-}
-
-/**
- * @param   topic       Topic to render (a Topic object).
- */
-function render_topic(topic) {
-    return $("<div>").append(render_topic_anchor(topic, topic.label))
 }
 
 /**

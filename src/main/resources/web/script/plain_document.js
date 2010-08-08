@@ -214,7 +214,7 @@ function PlainDocument() {
         var label = topic_label(selected_topic)
         canvas.set_topic_label(topic_id, label)
         canvas.refresh()
-        show_document()
+        render_topic()
         // trigger hook
         trigger_hook("post_set_topic_label", topic_id, label)
     }
@@ -223,7 +223,7 @@ function PlainDocument() {
         //
         trigger_hook("post_submit_form", selected_topic)
         //
-        show_document()
+        render_topic()
     }
 
     /* Delete */
