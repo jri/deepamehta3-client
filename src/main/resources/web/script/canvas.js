@@ -450,20 +450,22 @@ function Canvas() {
 
     function drop(e) {
         e.preventDefault();
-        if (contains(e.dataTransfer.types, "text/plain")) {
-            alert("Text dropped: " + e.dataTransfer.getData("text/plain"))
-        } else if (contains(e.dataTransfer.types, "Files")) {
+        if (contains(e.dataTransfer.types, "Files")) {
             if (typeof netscape != "undefined") {
-                process_drop_firefox(e.dataTransfer)
+                process_file_drop_firefox(e.dataTransfer)
             } else {
-                process_drop_safari(e.dataTransfer)
+                process_file_drop_safari(e.dataTransfer)
             }
+        } else if (contains(e.dataTransfer.types, "text/plain")) {
+            alert("WARNING: Dropped item is not processed.\n\nType: text/plain (not yet implemented)\n\n" +
+                "Text: " + e.dataTransfer.getData("text/plain"))
         } else {
-            alert("ERROR: Dropped item can not be processed.\n\n" + inspect(e.dataTransfer))
+            alert("WARNING: Dropped item is not processed.\n\nUnexpected type (not yet implemented)\n\n" +
+                inspect(e.dataTransfer))
         }
         return false;
 
-        function process_drop_firefox(dataTransfer) {
+        function process_file_drop_firefox(dataTransfer) {
             try {
                 for (var i = 0, file; file = e.dataTransfer.files[i]; i++) {
                     if (file.type == "text/plain") {
@@ -475,21 +477,25 @@ function Canvas() {
                     }
                 }
             } catch (e) {
-                alert("ERROR while accessing local file (" + e + ")")
+                alert("Local file \"" + file.name + "\" can't be accessed.\n\n" + e)
             }
 
             function read_text_file(file) {
                 var reader = new FileReader()
                 reader.onload = function() {
-                    netscape.security.PrivilegeManager.enablePrivilege("UniversalFileRead")
-                    var dropped_file = new File(file.name, file.mozFullPath, file.type, file.size, reader.result)
-                    trigger_hook("file_dropped", dropped_file)
+                    try {
+                        netscape.security.PrivilegeManager.enablePrivilege("UniversalFileRead")
+                        var dropped_file = new File(file.name, file.mozFullPath, file.type, file.size, reader.result)
+                        trigger_hook("file_dropped", dropped_file)
+                    } catch (e) {
+                        alert("Local file \"" + file.name + "\" can't be accessed.\n\n" + e)
+                    }
                 }
                 reader.readAsText(file)
             }
         }
 
-        function process_drop_safari(dataTransfer) {
+        function process_file_drop_safari(dataTransfer) {
             // Note: Safari provides a "text/uri-list" data flavor which holds the URIs of the files dropped
             var uri_list = dataTransfer.getData("text/uri-list").split("\n")
             for (var i = 0, file; file = dataTransfer.files[i]; i++) {
