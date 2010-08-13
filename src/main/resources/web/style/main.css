@@ -65,6 +65,11 @@ body {
     margin-top: 0;
 }
 
+.field-value pre {
+    font-size: 100%;
+    line-height: 1.3em;
+}
+
 .field-value label {
     display: block;
 }

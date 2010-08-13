@@ -450,64 +450,7 @@ function Canvas() {
 
     function drop(e) {
         e.preventDefault();
-        if (contains(e.dataTransfer.types, "Files")) {
-            if (typeof netscape != "undefined") {
-                process_file_drop_firefox(e.dataTransfer)
-            } else {
-                process_file_drop_safari(e.dataTransfer)
-            }
-        } else if (contains(e.dataTransfer.types, "text/plain")) {
-            alert("WARNING: Dropped item is not processed.\n\nType: text/plain (not yet implemented)\n\n" +
-                "Text: " + e.dataTransfer.getData("text/plain"))
-        } else {
-            alert("WARNING: Dropped item is not processed.\n\nUnexpected type (not yet implemented)\n\n" +
-                inspect(e.dataTransfer))
-        }
-        return false;
-
-        function process_file_drop_firefox(dataTransfer) {
-            try {
-                for (var i = 0, file; file = e.dataTransfer.files[i]; i++) {
-                    if (file.type == "text/plain") {
-                        read_text_file(file)
-                    } else {
-                        netscape.security.PrivilegeManager.enablePrivilege("UniversalFileRead")
-                        var dropped_file = new File(file.name, file.mozFullPath, file.type, file.size)
-                        trigger_hook("file_dropped", dropped_file)
-                    }
-                }
-            } catch (e) {
-                alert("Local file \"" + file.name + "\" can't be accessed.\n\n" + e)
-            }
-
-            function read_text_file(file) {
-                var reader = new FileReader()
-                reader.onload = function() {
-                    try {
-                        netscape.security.PrivilegeManager.enablePrivilege("UniversalFileRead")
-                        var dropped_file = new File(file.name, file.mozFullPath, file.type, file.size, reader.result)
-                        trigger_hook("file_dropped", dropped_file)
-                    } catch (e) {
-                        alert("Local file \"" + file.name + "\" can't be accessed.\n\n" + e)
-                    }
-                }
-                reader.readAsText(file)
-            }
-        }
-
-        function process_file_drop_safari(dataTransfer) {
-            // Note: Safari provides a "text/uri-list" data flavor which holds the URIs of the files dropped
-            var uri_list = dataTransfer.getData("text/uri-list").split("\n")
-            for (var i = 0, file; file = dataTransfer.files[i]; i++) {
-                var path = uri_list[i]
-                // Note: local file URIs provided by Safari begin with file://localhost which must be cut off
-                if (path.match(/^file:\/\/localhost(.*)/)) {
-                    path = RegExp.$1
-                }
-                var dropped_file = new File(file.name, path, file.type, file.size)
-                trigger_hook("file_dropped", dropped_file)
-            }
-        }
+        trigger_hook("process_drop", e.dataTransfer)
     }
 
     /**************************************** Helper ****************************************/
@@ -788,15 +731,5 @@ function Canvas() {
         this.id = id
         this.doc1_id = doc1_id
         this.doc2_id = doc2_id
-    }
-
-    // ---
-
-    function File(name, path, type, size, content) {
-        this.name = name
-        this.path = path
-        this.type = type
-        this.size = size
-        this.content = content
     }
 }

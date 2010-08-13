@@ -114,6 +114,9 @@ function DeepaMehtaClient(core_service_uri) {
         return request(method, uri, data, true)
     }
 
+    /**
+     * This utility method is called by plugins who register additional REST resources.
+     */
     this.createRequestParameter = function(params) {
         return new RequestParameter(params)
     }
