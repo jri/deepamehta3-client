@@ -192,6 +192,7 @@ function Canvas() {
     }
 
     this.rebuild = function() {
+        if (LOG_GUI) log("Rebuilding canvas")
         $("#canvas-panel").empty()
         build_view()
         ctx.translate(trans_x, trans_y)
@@ -323,7 +324,7 @@ function Canvas() {
         end_interaction()
     }
 
-    function clicked(event) {
+    function mouseup(event) {
         //
         close_context_menu()
         //
@@ -573,6 +574,7 @@ function Canvas() {
         //
         calculate_size()
         var canvas_elem = $(canvas).attr({id: "canvas", width: canvas_width, height: canvas_height})
+        // $("#canvas-panel").resizable({handles: "e"})
         $("#canvas-panel").append(canvas_elem)
         $("#canvas-panel").mouseleave(mouseleave)
         cox = canvas_elem.offset().left
@@ -580,9 +582,9 @@ function Canvas() {
         if (LOG_GUI) log("..... new canvas offset: x=" + cox + " y=" + coy)
         ctx = canvas.getContext("2d")
         // bind events
-        canvas_elem.click(clicked)
         canvas_elem.mousedown(mousedown)
         canvas_elem.mousemove(mousemove)
+        canvas_elem.mouseup(mouseup)
         canvas.oncontextmenu = contextmenu
         canvas.ondragover = dragover
         canvas.ondrop = drop
@@ -690,6 +692,7 @@ function Canvas() {
             // because the size of the label div is unknown.
             ct.label_div = $("<div>").addClass("canvas-topic-label").text(ct.label).css("max-width", LABEL_MAX_WIDTH)
             ct.label_div.mousemove(mousemove)   // to not block mouse gestures when moving over the label div
+            ct.label_div.mouseup(mouseup)       // to not block mouse gestures when mouse-up over the label div
             $("#canvas-panel").append(ct.label_div)
             ct.label_div.css(label_position_css(ct))
             // Note: we must add the label div as a canvas sibling. As a canvas child element it doesn't appear.
