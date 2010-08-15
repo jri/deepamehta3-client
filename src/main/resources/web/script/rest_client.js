@@ -97,6 +97,12 @@ function DeepaMehtaClient(core_service_uri) {
             "/field/" + encodeURIComponent(field_uri))
     }
 
+    // --- Commands ---
+
+    this.execute_command = function(command, params) {
+        return request("POST", "/command/" + encodeURIComponent(command), params)
+    }
+
     // --- Plugins ---
 
     this.get_plugins = function() {

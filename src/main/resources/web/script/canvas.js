@@ -352,6 +352,58 @@ function Canvas() {
         end_interaction()
     }
 
+    function dblclick(event) {
+        var ct = topic_by_position(event)
+        if (ct) {
+            trigger_hook("topic_doubleclicked", ct)
+        }
+    }
+
+    // ---
+
+    function topic_by_position(event) {
+        var x = cx(event, true)
+        var y = cy(event, true)
+        for (var i = 0, ct; ct = canvas_topics[i]; i++) {
+            if (x >= ct.x - ct.width / 2 && x < ct.x + ct.width / 2 &&
+                y >= ct.y - ct.height / 2 && y < ct.y + ct.height / 2) {
+                //
+                return ct
+            }
+        }
+    }
+
+    function assoc_by_position(event) {
+        var x = cx(event, true)
+        var y = cy(event, true)
+        for (var i in canvas_assocs) {
+            var ca = canvas_assocs[i]
+            var ct1 = topic_by_id(ca.doc1_id)
+            var ct2 = topic_by_id(ca.doc2_id)
+            // bounding rectangle
+            var aw2 = ASSOC_WIDTH / 2   // buffer to make orthogonal associations selectable
+            var bx1 = Math.min(ct1.x, ct2.x) - aw2
+            var bx2 = Math.max(ct1.x, ct2.x) + aw2
+            var by1 = Math.min(ct1.y, ct2.y) - aw2
+            var by2 = Math.max(ct1.y, ct2.y) + aw2
+            var in_bounding = x > bx1 && x < bx2 && y > by1 && y < by2
+            if (!in_bounding) {
+                continue
+            }
+            // gradient
+            var g1 = (y - ct1.y) / (x - ct1.x)
+            var g2 = (y - ct2.y) / (x - ct2.x)
+            // log(g1 + " " + g2 + " -> " + Math.abs(g1 - g2))
+            //
+            if (Math.abs(g1 - g2) < ASSOC_CLICK_TOLERANCE) {
+                return ca
+            }
+        }
+        return null
+    }
+
+    // ---
+
     function end_topic_move() {
         topic_move_in_progress = false
         // trigger hook
@@ -522,47 +574,6 @@ function Canvas() {
         return assoc_ids
     }
 
-    function topic_by_position(event) {
-        var x = cx(event, true)
-        var y = cy(event, true)
-        for (var i = 0, ct; ct = canvas_topics[i]; i++) {
-            if (x >= ct.x - ct.width / 2 && x < ct.x + ct.width / 2 &&
-                y >= ct.y - ct.height / 2 && y < ct.y + ct.height / 2) {
-                //
-                return ct
-            }
-        }
-    }
-
-    function assoc_by_position(event) {
-        var x = cx(event, true)
-        var y = cy(event, true)
-        for (var i in canvas_assocs) {
-            var ca = canvas_assocs[i]
-            var ct1 = topic_by_id(ca.doc1_id)
-            var ct2 = topic_by_id(ca.doc2_id)
-            // bounding rectangle
-            var aw2 = ASSOC_WIDTH / 2   // buffer to make orthogonal associations selectable
-            var bx1 = Math.min(ct1.x, ct2.x) - aw2
-            var bx2 = Math.max(ct1.x, ct2.x) + aw2
-            var by1 = Math.min(ct1.y, ct2.y) - aw2
-            var by2 = Math.max(ct1.y, ct2.y) + aw2
-            var in_bounding = x > bx1 && x < bx2 && y > by1 && y < by2
-            if (!in_bounding) {
-                continue
-            }
-            // gradient
-            var g1 = (y - ct1.y) / (x - ct1.x)
-            var g2 = (y - ct2.y) / (x - ct2.x)
-            // log(g1 + " " + g2 + " -> " + Math.abs(g1 - g2))
-            //
-            if (Math.abs(g1 - g2) < ASSOC_CLICK_TOLERANCE) {
-                return ca
-            }
-        }
-        return null
-    }
-
     /*** GUI Helper ***/
 
     function build_view() {
@@ -585,6 +596,7 @@ function Canvas() {
         canvas_elem.mousedown(mousedown)
         canvas_elem.mousemove(mousemove)
         canvas_elem.mouseup(mouseup)
+        canvas_elem.dblclick(dblclick)
         canvas.oncontextmenu = contextmenu
         canvas.ondragover = dragover
         canvas.ondrop = drop
@@ -639,7 +651,7 @@ function Canvas() {
         var h = icon.height
 
         this.id = id
-        this.type = type
+        this.type = type                    // FIXME: rename to type_uri
         this.label = label
         this.x = x
         this.y = y
@@ -648,8 +660,8 @@ function Canvas() {
         this.height = h
 
         // label div
-        this.lox = -w / 2                       // label offset
-        this.loy = h / 2 + LABEL_DIST_Y         // label offset
+        this.lox = -w / 2                   // label offset
+        this.loy = h / 2 + LABEL_DIST_Y     // label offset
         init_label_pos(this)
         build_label(this)
 
