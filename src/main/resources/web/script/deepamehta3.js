@@ -74,7 +74,7 @@ $(document).ready(function() {
     // the document form
     $("#document-form").submit(submit_document)
     detail_panel_width = $("#detail-panel").width()
-    log("Detail panel width: " + detail_panel_width)
+    if (LOG_GUI) log("Detail panel width: " + detail_panel_width)
     // The upload dialog
     $("#upload-dialog").dialog({
         modal: true, autoOpen: false, draggable: false, resizable: false, width: UPLOAD_DIALOG_WIDTH
@@ -909,9 +909,25 @@ function size(object) {
 }
 
 function inspect(object) {
-    var str = "\n"
+    var attr_keys = []
+    var func_keys = []
+    // sort keys
     for (var key in object) {
+        if (typeof object[key] == "function") {
+            func_keys.push(key)
+        } else {
+            attr_keys.push(key)
+        }
+    }
+    attr_keys.sort()
+    func_keys.sort()
+    // build result
+    var str = "\n"
+    for (var i = 0, key; key = attr_keys[i]; i++) {
         str += key + ": " + object[key] + "\n"
+    }
+    for (var i = 0, key; key = func_keys[i]; i++) {
+        str += "function " + key + "()\n"
     }
     return str
 }

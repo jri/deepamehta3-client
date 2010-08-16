@@ -35,7 +35,7 @@ function Canvas() {
 
     // build the canvas
     init_model()
-    build_view()
+    build_canvas()
 
 
 
@@ -191,13 +191,8 @@ function Canvas() {
         init_model()
     }
 
-    this.rebuild = function() {
-        if (LOG_GUI) log("Rebuilding canvas")
-        $("#canvas-panel").empty()
-        build_view()
-        ctx.translate(trans_x, trans_y)
-        draw()
-        rebuild_topic_labels()
+    this.rebuild = function(size) {
+        rebuild_canvas(size)
     }
 
 
@@ -275,6 +270,7 @@ function Canvas() {
     /**************************************** Event Handling ****************************************/
 
     function mousedown(event) {
+        if (LOG_GUI) log("Mouse down!")
         if (event.which == 1) {
             tmp_x = cx(event)
             tmp_y = cy(event)
@@ -325,6 +321,7 @@ function Canvas() {
     }
 
     function mouseup(event) {
+        if (LOG_GUI) log("Mouse up!")
         //
         close_context_menu()
         //
@@ -357,6 +354,12 @@ function Canvas() {
         if (ct) {
             trigger_hook("topic_doubleclicked", ct)
         }
+    }
+
+    function resize(event, ui_event) {
+        if (LOG_GUI) log("Canvas resized: original with=" + ui_event.originalSize.width +
+                                         " current with=" + ui_event.size.width)
+        rebuild_canvas({width: ui_event.size.width, height: canvas_height})
     }
 
     // ---
@@ -459,8 +462,8 @@ function Canvas() {
     function open_context_menu(items, type, event) {
         var contextmenu = $("<div>").addClass("contextmenu").css({
             position: "absolute",
-            top:  event.pageY + "px",
-            left: event.pageX + "px"
+            top:  event.layerY + "px",
+            left: event.layerX + "px"
         })
         for (var i = 0, item; item = items[i]; i++) {
             var handler = context_menu_handler(type, item.handler)
@@ -576,20 +579,26 @@ function Canvas() {
 
     /*** GUI Helper ***/
 
-    function build_view() {
+    function build_canvas(size) {
         var canvas = document.createElement("canvas")
         // initialize ExplorerCanvas
         if (typeof(G_vmlCanvasManager) != "undefined") {
             canvas = G_vmlCanvasManager.initElement(canvas)
         }
         //
-        calculate_size()
+        if (size) {
+            canvas_width = size.width
+            canvas_height = size.height
+        } else {
+            calculate_size()
+        }
+        //
         var canvas_elem = $(canvas).attr({id: "canvas", width: canvas_width, height: canvas_height})
-        // $("#canvas-panel").resizable({handles: "e"})
+        $("#canvas-panel").resizable({handles: "e", resize: resize})    // FIXME: perform once (not with every rebuild)
         $("#canvas-panel").append(canvas_elem)
-        $("#canvas-panel").mouseleave(mouseleave)
-        cox = canvas_elem.offset().left
-        coy = canvas_elem.offset().top
+        $("#canvas-panel").mouseleave(mouseleave)                       // FIXME: perform once (not with every rebuild)
+        cox = canvas_elem.offset().left                                 // FIXME: not needed anymore
+        coy = canvas_elem.offset().top                                  // FIXME: not needed anymore
         if (LOG_GUI) log("..... new canvas offset: x=" + cox + " y=" + coy)
         ctx = canvas.getContext("2d")
         // bind events
@@ -600,6 +609,17 @@ function Canvas() {
         canvas.oncontextmenu = contextmenu
         canvas.ondragover = dragover
         canvas.ondrop = drop
+    }
+
+    function rebuild_canvas(size) {
+        if (LOG_GUI) log("Rebuilding canvas")
+        // Note: we don't empty the entire canvas-panel to keep the resizable-handle element.
+        $("#canvas-panel #canvas").remove()
+        $("#canvas-panel .canvas-topic-label").remove()
+        build_canvas(size)
+        ctx.translate(trans_x, trans_y)
+        draw()
+        rebuild_topic_labels()
     }
 
     function calculate_size() {
@@ -635,11 +655,11 @@ function Canvas() {
     }
 
     function cx(event, consider_translation) {
-        return event.pageX - cox - (consider_translation ? trans_x : 0)
+        return event.layerX - (consider_translation ? trans_x : 0)
     }
 
     function cy(event, consider_translation) {
-        return event.pageY - coy - (consider_translation ? trans_y : 0)
+        return event.layerY - (consider_translation ? trans_y : 0)
     }
 
     /*** Helper Classes ***/
@@ -694,8 +714,8 @@ function Canvas() {
         }
 
         function init_label_pos(ct) {
-            ct.label_x = ct.x + ct.lox + cox + trans_x
-            ct.label_y = ct.y + ct.loy + coy + trans_y
+            ct.label_x = ct.x + ct.lox + trans_x
+            ct.label_y = ct.y + ct.loy + trans_y
         }
 
         function build_label(ct) {
@@ -721,8 +741,8 @@ function Canvas() {
             // because "overflow: hidden" only works with absolute positioning the context panel
             // which in turn has a lot of consequences, e.g. the context menu items doesn't
             // occupy the entire context menu width anymore and I don't know how to fix it.
-            var lx = ct.label_x - cox;
-            var ly = ct.label_y - coy;
+            var lx = ct.label_x;
+            var ly = ct.label_y;
             // Note: if the label div is completely out of sight we must set it to "display: none".
             // Otherwise the document would grow and produce window scrollbars.
             if (lx > canvas_width || ly > canvas_height) {
