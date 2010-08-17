@@ -21,7 +21,6 @@ function Canvas() {
     // View (Canvas)
     var canvas_width
     var canvas_height
-    var cox, coy                    // canvas offset: upper left position of the canvas element
     var ctx                         // the drawing context
 
     // Short-term Interaction State
@@ -36,6 +35,10 @@ function Canvas() {
     // build the canvas
     init_model()
     build_canvas()
+    $("#canvas-panel").dblclick(dblclick)
+    $("#canvas-panel").mousemove(mousemove)
+    $("#canvas-panel").mouseleave(mouseleave)
+    $("#canvas-panel").resizable({handles: "e", resize: resize})
 
 
 
@@ -150,7 +153,8 @@ function Canvas() {
 
     this.focus_topic = function(topic_id) {
         var ct = topic_by_id(topic_id)
-        if (ct.x + trans_x < 0 || ct.x + trans_x >= canvas_width || ct.y + trans_y < 0 || ct.y + trans_y >= canvas_height) {
+        if (ct.x + trans_x < 0 || ct.x + trans_x >= canvas_width ||
+            ct.y + trans_y < 0 || ct.y + trans_y >= canvas_height) {
             var dx = (canvas_width / 2 - ct.x - trans_x) / CANVAS_ANIMATION_STEPS
             var dy = (canvas_height / 2 - ct.y - trans_y) / CANVAS_ANIMATION_STEPS
             animation_count = 0;
@@ -271,6 +275,7 @@ function Canvas() {
 
     function mousedown(event) {
         if (LOG_GUI) log("Mouse down!")
+        //
         if (event.which == 1) {
             tmp_x = cx(event)
             tmp_y = cy(event)
@@ -308,7 +313,8 @@ function Canvas() {
     }
 
     function mouseleave(event) {
-        // log("Mouse leaving canvas")
+        if (LOG_GUI) log("Mouse leave!")
+        //
         if (relation_in_progress) {
             end_relation_in_progress()
             draw()
@@ -359,7 +365,11 @@ function Canvas() {
     function resize(event, ui_event) {
         if (LOG_GUI) log("Canvas resized: original with=" + ui_event.originalSize.width +
                                          " current with=" + ui_event.size.width)
+        // resize canvas
         rebuild_canvas({width: ui_event.size.width, height: canvas_height})
+        // resize detail panel
+        calculate_detail_panel_size()
+        $("#detail-panel").width(detail_panel_width)
     }
 
     // ---
@@ -434,6 +444,7 @@ function Canvas() {
     /**************************************** Context Menu ****************************************/
 
     function contextmenu(event) {
+        if (LOG_GUI) log("Contextmenu!")
         //
         close_context_menu()
         //
@@ -579,13 +590,20 @@ function Canvas() {
 
     /*** GUI Helper ***/
 
+    /**
+     * Build the HTML5 canvas element.
+     *
+     * Called in 2 situations:
+     * 1) When the main GUI is build initially
+     * 2) When the canvas is rebuild (as a result of resizing)
+     */
     function build_canvas(size) {
         var canvas = document.createElement("canvas")
         // initialize ExplorerCanvas
         if (typeof(G_vmlCanvasManager) != "undefined") {
             canvas = G_vmlCanvasManager.initElement(canvas)
         }
-        //
+        // calculate size
         if (size) {
             canvas_width = size.width
             canvas_height = size.height
@@ -594,18 +612,11 @@ function Canvas() {
         }
         //
         var canvas_elem = $(canvas).attr({id: "canvas", width: canvas_width, height: canvas_height})
-        $("#canvas-panel").resizable({handles: "e", resize: resize})    // FIXME: perform once (not with every rebuild)
         $("#canvas-panel").append(canvas_elem)
-        $("#canvas-panel").mouseleave(mouseleave)                       // FIXME: perform once (not with every rebuild)
-        cox = canvas_elem.offset().left                                 // FIXME: not needed anymore
-        coy = canvas_elem.offset().top                                  // FIXME: not needed anymore
-        if (LOG_GUI) log("..... new canvas offset: x=" + cox + " y=" + coy)
         ctx = canvas.getContext("2d")
         // bind events
         canvas_elem.mousedown(mousedown)
-        canvas_elem.mousemove(mousemove)
         canvas_elem.mouseup(mouseup)
-        canvas_elem.dblclick(dblclick)
         canvas.oncontextmenu = contextmenu
         canvas.ondragover = dragover
         canvas.ondrop = drop
@@ -635,6 +646,11 @@ function Canvas() {
         }
     }
 
+    function calculate_detail_panel_size() {
+        var w_w = window.innerWidth
+        detail_panel_width = w_w - canvas_width - 50
+    }
+
     function translate(tx, ty) {
         ctx.translate(tx, ty)
         move_topic_labels_by(tx, ty)
@@ -655,11 +671,21 @@ function Canvas() {
     }
 
     function cx(event, consider_translation) {
-        return event.layerX - (consider_translation ? trans_x : 0)
+        if ($(event.target).hasClass("canvas-topic-label")) {
+            var offset = $(event.target).position().left
+        } else {
+            var offset = 0
+        }
+        return event.layerX + (consider_translation ? -trans_x : 0) + offset
     }
 
     function cy(event, consider_translation) {
-        return event.layerY - (consider_translation ? trans_y : 0)
+        if ($(event.target).hasClass("canvas-topic-label")) {
+            var offset = $(event.target).position().top
+        } else {
+            var offset = 0
+        }
+        return event.layerY + (consider_translation ? -trans_y : 0) + offset
     }
 
     /*** Helper Classes ***/
@@ -723,7 +749,6 @@ function Canvas() {
             // setting) _before_ the clipping is applied. Otherwise the clipping can't be calculated
             // because the size of the label div is unknown.
             ct.label_div = $("<div>").addClass("canvas-topic-label").text(ct.label).css("max-width", LABEL_MAX_WIDTH)
-            ct.label_div.mousemove(mousemove)   // to not block mouse gestures when moving over the label div
             ct.label_div.mouseup(mouseup)       // to not block mouse gestures when mouse-up over the label div
             $("#canvas-panel").append(ct.label_div)
             ct.label_div.css(label_position_css(ct))
