@@ -34,11 +34,11 @@ function Canvas() {
 
     // build the canvas
     init_model()
-    build_canvas()
+    create_canvas_element()
     $("#canvas-panel").dblclick(dblclick)
     $("#canvas-panel").mousemove(mousemove)
     $("#canvas-panel").mouseleave(mouseleave)
-    $("#canvas-panel").resizable({handles: "e", resize: resize})
+    $("#canvas-panel").resizable({handles: "e", resize: resize, stop: stop_resize})
 
 
 
@@ -372,6 +372,13 @@ function Canvas() {
         $("#detail-panel").width(detail_panel_width)
     }
 
+    function stop_resize() {
+        // While resizing-via-handle jQuery UI adds a "style" attribute with absolute size values to the canvas-panel.
+        // This stops its flexible sizing (that follows the canvas element's size) and breaks the layout once the main
+        // window is resized. Removing that style attribute once resizing-via-handle is finished solves that problem.
+        $("#canvas-panel").removeAttr("style")
+    }
+
     // ---
 
     function topic_by_position(event) {
@@ -591,13 +598,13 @@ function Canvas() {
     /*** GUI Helper ***/
 
     /**
-     * Build the HTML5 canvas element.
+     * Creates the HTML5 canvas element, binds the event handlers, and adds it to the document.
      *
      * Called in 2 situations:
      * 1) When the main GUI is build initially
      * 2) When the canvas is rebuild (as a result of resizing)
      */
-    function build_canvas(size) {
+    function create_canvas_element(size) {
         var canvas = document.createElement("canvas")
         // initialize ExplorerCanvas
         if (typeof(G_vmlCanvasManager) != "undefined") {
@@ -610,16 +617,29 @@ function Canvas() {
         } else {
             calculate_size()
         }
-        //
+        // add to document
         var canvas_elem = $(canvas).attr({id: "canvas", width: canvas_width, height: canvas_height})
         $("#canvas-panel").append(canvas_elem)
         ctx = canvas.getContext("2d")
-        // bind events
+        // bind event handlers
         canvas_elem.mousedown(mousedown)
         canvas_elem.mouseup(mouseup)
         canvas.oncontextmenu = contextmenu
         canvas.ondragover = dragover
         canvas.ondrop = drop
+
+        function calculate_size() {
+            var w_w = window.innerWidth
+            var w_h = window.innerHeight
+            var t_h = $("#upper-toolbar").height()
+            canvas_width = w_w - detail_panel_width - 50    // 35px = 1.2em + 2 * 8px = 19(.2)px + 16px.
+                                            // Update: Safari 4 needs 15 extra pixel (for potential vertical scrollbar?)
+            canvas_height = w_h - t_h - 76  // was 60, then 67 (healing login dialog), then 76 (healing datepicker)
+            if (LOG_GUI) {
+                log("Calculating canvas size: window size=" + w_w + "x" + w_h + " toolbar height=" + t_h)
+                log("..... new canvas size=" + canvas_width + "x" + canvas_height)
+            }
+        }
     }
 
     function rebuild_canvas(size) {
@@ -627,28 +647,15 @@ function Canvas() {
         // Note: we don't empty the entire canvas-panel to keep the resizable-handle element.
         $("#canvas-panel #canvas").remove()
         $("#canvas-panel .canvas-topic-label").remove()
-        build_canvas(size)
+        create_canvas_element(size)
         ctx.translate(trans_x, trans_y)
         draw()
         rebuild_topic_labels()
     }
 
-    function calculate_size() {
-        var w_w = window.innerWidth
-        var w_h = window.innerHeight
-        var t_h = $("#upper-toolbar").height()
-        canvas_width = w_w - detail_panel_width - 50    // 35px = 1.2em + 2 * 8px = 19(.2)px + 16px.
-                                            // Update: Safari 4 needs 15 extra pixel (for potential vertical scrollbar?)
-        canvas_height = w_h - t_h - 76      // was 60, then 67 (healing login dialog), then 76 (healing datepicker)
-        if (LOG_GUI) {
-            log("Calculating canvas size: window size=" + w_w + "x" + w_h + " toolbar height=" + t_h)
-            log("..... new canvas size=" + canvas_width + "x" + canvas_height)
-        }
-    }
-
     function calculate_detail_panel_size() {
         var w_w = window.innerWidth
-        detail_panel_width = w_w - canvas_width - 50
+        detail_panel_width = w_w - canvas_width - 50        // -50px: see above
     }
 
     function translate(tx, ty) {

@@ -61,7 +61,7 @@ register_plugin("script/dm3_tinymce.js")
 // register_plugin("script/dm3_datafields.js")
 // css_stylesheet("style/main.css")     // layout flatters while loading
 
-$(document).ready(function() {
+$(function() {
     // --- setup GUI ---
     $("#upper-toolbar").addClass("ui-widget-header").addClass("ui-corner-all")
     // the search form
@@ -119,12 +119,12 @@ $(document).ready(function() {
             return this.request("GET", "/client/search/by_type/" + encodeURIComponent(type_uri))
         }
     }
-})
 
-function window_resized() {
-    canvas.rebuild()
-    $("#detail-panel").height($("#canvas").height())
-}
+    function window_resized() {
+        canvas.rebuild()
+        $("#detail-panel").height($("#canvas").height())
+    }
+})
 
 function searchmode_selected(menu_item) {
     // Note: we must empty the current search widget _before_ the new search widget is build. Otherwise the
