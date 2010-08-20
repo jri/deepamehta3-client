@@ -17,13 +17,14 @@ function Canvas() {
     var canvas_assocs               // relations displayed on canvas (array of CanvasAssoc)
     var trans_x, trans_y            // canvas translation
     var highlight_topic_id
+    var grid_positioning            // while grid positioning is in progress: a GridPositioning object, null otherwise
     
     // View (Canvas)
     var canvas_width
     var canvas_height
     var ctx                         // the drawing context
 
-    // Short-term Interaction State
+    // Short-term Interaction State (model)
     var topic_move_in_progress      // true while topic move is in progress (boolean)
     var canvas_move_in_progress     // true while canvas translation is in progress (boolean)
     var relation_in_progress        // true while new association is pulled (boolean)
@@ -40,13 +41,7 @@ function Canvas() {
     $("#canvas-panel").mouseleave(mouseleave)
     $("#canvas-panel").resizable({handles: "e", resize: resize, stop: stop_resize})
 
-
-
-    /**********************************************************************************************/
-    /**************************************** "Public" API ****************************************/
-    /**********************************************************************************************/
-
-
+    // ------------------------------------------------------------------------------------------------------ Public API
 
     /**
      * @param   highlight_topic     Optional: if true, the topic is highlighted.
@@ -58,8 +53,14 @@ function Canvas() {
         if (!topic_exists(id)) {
             // init geometry
             if (x == undefined && y == undefined) {
-                x = canvas_width * Math.random() - trans_x
-                y = canvas_height * Math.random() - trans_y
+                if (grid_positioning) {
+                    var pos = grid_positioning.next_position()
+                    x = pos.x
+                    y = pos.y
+                } else {
+                    x = canvas_width * Math.random() - trans_x
+                    y = canvas_height * Math.random() - trans_y
+                }
             }
             // update model
             var ct = new CanvasTopic(id, type, label, x, y)
@@ -199,15 +200,25 @@ function Canvas() {
         rebuild_canvas(size)
     }
 
+    /*** Grid Positioning ***/
+
+    this.start_grid_positioning = function() {
+        grid_positioning = new GridPositioning()
+    }
+
+    this.stop_grid_positioning = function() {
+        grid_positioning = null
+    }
+
+    // ------------------------------------------------------------------------------------------------- Private Methods
 
 
-    /*************************************************************************************************/
-    /**************************************** Private Methods ****************************************/
-    /*************************************************************************************************/
+
+    /***************/
+    /*** Drawing ***/
+    /***************/
 
 
-
-    /**************************************** Drawing ****************************************/
 
     function draw() {
         ctx.clearRect(-trans_x, -trans_y, canvas_width, canvas_height)
@@ -232,11 +243,13 @@ function Canvas() {
                 ctx.drawImage(ct.icon, ct.x - w / 2, ct.y - h / 2)
                 // highlight
                 if (highlight_topic_id == ct.id) {
-                    ctx.strokeRect(ct.x - w / 2 - HIGHLIGHT_DIST, ct.y - h / 2 - HIGHLIGHT_DIST, w + 2 * HIGHLIGHT_DIST, h + 2 * HIGHLIGHT_DIST)
+                    ctx.strokeRect(ct.x - w / 2 - HIGHLIGHT_DIST, ct.y - h / 2 - HIGHLIGHT_DIST,
+                                          w + 2 * HIGHLIGHT_DIST, h + 2 * HIGHLIGHT_DIST)
                 }
             } catch (e) {
                 log("### ERROR at Canvas.draw_topics:\nicon.src=" + ct.icon.src + "\nicon.width=" + ct.icon.width +
-                    "\nicon.height=" + ct.icon.height  + "\nicon.complete=" + ct.icon.complete/* + "\n" + JSON.stringify(e) */)
+                    "\nicon.height=" + ct.icon.height  + "\nicon.complete=" + ct.icon.complete
+                    /* + "\n" + JSON.stringify(e) */)
             }
         }
     }
@@ -271,7 +284,15 @@ function Canvas() {
         ctx.stroke()
     }
 
-    /**************************************** Event Handling ****************************************/
+
+
+    /**********************/
+    /*** Event Handling ***/
+    /**********************/
+
+
+
+    /*** Mouse Events ***/
 
     function mousedown(event) {
         if (LOG_GUI) log("Mouse down!")
@@ -448,7 +469,7 @@ function Canvas() {
         }
     }
 
-    /**************************************** Context Menu ****************************************/
+    /*** Context Menu Events ***/
 
     function contextmenu(event) {
         if (LOG_GUI) log("Contextmenu!")
@@ -514,7 +535,7 @@ function Canvas() {
         $("#canvas-panel .contextmenu").remove()
     }
 
-    /**************************************** Drag and Drop ****************************************/
+    /*** Drag and Drop Events ***/
 
     // Required. Otherwise we don't receive a drop.
     function dragover () {
@@ -523,11 +544,17 @@ function Canvas() {
     }
 
     function drop(e) {
-        e.preventDefault();
         trigger_hook("process_drop", e.dataTransfer)
+        return false
     }
 
-    /**************************************** Helper ****************************************/
+
+
+    /**********************/
+    /*** Helper Methods ***/
+    /**********************/
+
+
 
     /*** Model Helper ***/
 
@@ -695,7 +722,7 @@ function Canvas() {
         return event.layerY + (consider_translation ? -trans_y : 0) + offset
     }
 
-    /*** Helper Classes ***/
+    // ------------------------------------------------------------------------------------------------- Private Classes
 
     function CanvasTopic(id, type, label, x, y) {
 
@@ -798,5 +825,48 @@ function Canvas() {
         this.id = id
         this.doc1_id = doc1_id
         this.doc2_id = doc2_id
+    }
+
+    // ---
+
+    function GridPositioning() {
+
+        // Settings
+        var GRID_DIST_X = 180           // 10em (see LABEL_MAX_WIDTH)
+        var GRID_DIST_Y = 80
+        var START_X = 50 - trans_x
+        var START_Y = 50
+        var MIN_Y = -9999
+
+        var start_pos = find_start_postition()
+        var grid_x = start_pos.x
+        var grid_y = start_pos.y
+
+        this.next_position = function() {
+            var pos = {x: grid_x, y: grid_y}
+            advance_position()
+            return pos
+        }
+
+        function find_start_postition() {
+            var max_y = MIN_Y
+            for (var i = 0, ct; ct = canvas_topics[i]; i++) {
+                if (ct.y > max_y) {
+                    max_y = ct.y
+                }
+            }
+            var x = START_X
+            var y = max_y != MIN_Y ? max_y + GRID_DIST_Y : START_Y
+            return {x: x, y: y}
+        }
+
+        function advance_position() {
+            if (grid_x + GRID_DIST_X + trans_x > canvas_width) {
+                grid_x = START_X
+                grid_y += GRID_DIST_Y
+            } else {
+                grid_x += GRID_DIST_X
+            }
+        }
     }
 }

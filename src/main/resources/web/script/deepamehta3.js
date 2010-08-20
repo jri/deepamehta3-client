@@ -182,9 +182,10 @@ function reveal_topic(topic_id, do_relate) {
 }
 
 /**
- * High-level utility method for plugin developers:
  * Adds a topic to the canvas, selects it, and refreshes the detail panel according to the specified action.
  * Note: use this method only for topics existing in the DB already. Possibly call create_topic() before.
+ *
+ * High-level utility method for plugin developers.
  *
  * @param   topic       Topic to add (a Topic object).
  * @param   action      "show" - shows topic info in the detail panel
