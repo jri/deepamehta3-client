@@ -178,7 +178,7 @@ function reveal_topic(topic_id, do_relate) {
     }
     // reveal topic
     add_topic_to_canvas(dmc.get_topic(topic_id), "show")
-    canvas.focus_topic(topic_id)
+    canvas.scroll_topic_to_center(topic_id)
 }
 
 /**

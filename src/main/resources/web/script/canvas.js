@@ -15,14 +15,14 @@ function Canvas() {
     // Model
     var canvas_topics               // topics displayed on canvas (array of CanvasTopic)
     var canvas_assocs               // relations displayed on canvas (array of CanvasAssoc)
-    var trans_x, trans_y            // canvas translation
-    var highlight_topic_id
+    var trans_x, trans_y            // canvas translation (in pixel)
+    var highlight_topic_id          // ID of the highlighted topic (drawn with red frame), if any
     var grid_positioning            // while grid positioning is in progress: a GridPositioning object, null otherwise
     
     // View (Canvas)
-    var canvas_width
-    var canvas_height
-    var ctx                         // the drawing context
+    var canvas_width                // reflects canvas width (in pixel)
+    var canvas_height               // reflects canvas height (in pixel)
+    var ctx                         // the canvas drawing context
 
     // Short-term Interaction State (model)
     var topic_move_in_progress      // true while topic move is in progress (boolean)
@@ -30,8 +30,6 @@ function Canvas() {
     var relation_in_progress        // true while new association is pulled (boolean)
     var action_topic                // the topic being moved / related (a CanvasTopic)
     var tmp_x, tmp_y                // coordinates while action is in progress
-    var animation
-    var animation_count
 
     // build the canvas
     init_model()
@@ -152,23 +150,9 @@ function Canvas() {
         topic_by_id(id).set_label(label)
     }
 
-    this.focus_topic = function(topic_id) {
+    this.scroll_topic_to_center = function(topic_id) {
         var ct = topic_by_id(topic_id)
-        if (ct.x + trans_x < 0 || ct.x + trans_x >= canvas_width ||
-            ct.y + trans_y < 0 || ct.y + trans_y >= canvas_height) {
-            var dx = (canvas_width / 2 - ct.x - trans_x) / CANVAS_ANIMATION_STEPS
-            var dy = (canvas_height / 2 - ct.y - trans_y) / CANVAS_ANIMATION_STEPS
-            animation_count = 0;
-            animation = setInterval("canvas.animation(" + dx + ", " + dy + ")", 0)
-        }
-    }
-
-    this.animation = function(dx, dy) {
-        translate(dx, dy)
-        draw()
-        if (++animation_count == CANVAS_ANIMATION_STEPS) {
-            clearInterval(animation)
-        }
+        scroll_to_center(ct.x + trans_x, ct.y + trans_y)
     }
 
     this.refresh = function() {
@@ -704,6 +688,21 @@ function Canvas() {
          }
     }
 
+    function scroll_to_center(x, y) {
+        if (x < 0 || x >= canvas_width || y < 0 || y >= canvas_height) {
+            var dx = (canvas_width / 2 - x) / CANVAS_ANIMATION_STEPS
+            var dy = (canvas_height / 2 - y) / CANVAS_ANIMATION_STEPS
+            var animation_count = 0;
+            var animation = setInterval(function() {
+                translate(dx, dy)
+                draw()
+                if (++animation_count == CANVAS_ANIMATION_STEPS) {
+                    clearInterval(animation)
+                }
+            }, 0)
+        }
+    }
+
     function cx(event, consider_translation) {
         if ($(event.target).hasClass("canvas-topic-label")) {
             var offset = $(event.target).position().left
@@ -838,13 +837,20 @@ function Canvas() {
         var START_Y = 50
         var MIN_Y = -9999
 
+        var item_count = 0
         var start_pos = find_start_postition()
         var grid_x = start_pos.x
         var grid_y = start_pos.y
 
         this.next_position = function() {
             var pos = {x: grid_x, y: grid_y}
+            if (item_count == 0) {
+                scroll_to_center(canvas_width / 2, pos.y + trans_y)
+            }
+            //
             advance_position()
+            item_count++
+            //
             return pos
         }
 
