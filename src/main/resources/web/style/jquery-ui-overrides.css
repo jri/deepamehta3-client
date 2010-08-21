@@ -23,4 +23,5 @@
 
 .ui-resizable-handle {
     background: #ccc;
+    z-index: 999;
 }

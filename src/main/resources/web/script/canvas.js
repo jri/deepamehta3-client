@@ -781,7 +781,8 @@ function Canvas() {
             // Note: we must add the label div to the document (along with text content and max-width
             // setting) _before_ the clipping is applied. Otherwise the clipping can't be calculated
             // because the size of the label div is unknown.
-            ct.label_div = $("<div>").addClass("canvas-topic-label").text(ct.label).css("max-width", LABEL_MAX_WIDTH)
+            ct.label_div = $("<div>").addClass("canvas-topic-label").text(ct.label)
+            ct.label_div.css({"max-width": LABEL_MAX_WIDTH})
             ct.label_div.mouseup(mouseup)       // to not block mouse gestures when mouse-up over the label div
             $("#canvas-panel").append(ct.label_div)
             ct.label_div.css(label_position_css(ct))
@@ -831,7 +832,7 @@ function Canvas() {
     function GridPositioning() {
 
         // Settings
-        var GRID_DIST_X = 180           // 10em (see LABEL_MAX_WIDTH)
+        var GRID_DIST_X = 180           // 10em (see LABEL_MAX_WIDTH) + 20 pixel padding
         var GRID_DIST_Y = 80
         var START_X = 50 - trans_x
         var START_Y = 50
