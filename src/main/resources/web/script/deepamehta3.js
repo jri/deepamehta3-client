@@ -182,20 +182,26 @@ function reveal_topic(topic_id, do_relate) {
 }
 
 /**
- * Adds a topic to the canvas, selects it, and refreshes the detail panel according to the specified action.
- * Note: use this method only for topics existing in the DB already. Possibly call create_topic() before.
+ * Adds a topic to the canvas, and refreshes the detail panel according to the specified action.
  *
  * High-level utility method for plugin developers.
+ * Note: the topic must exist in the DB already. Possibly call create_topic() before.
  *
  * @param   topic       Topic to add (a Topic object).
- * @param   action      "show" - shows topic info in the detail panel
- *                      "edit" - shows topic form in the detail panel
+ * @param   action      Optional: action to perform, 3 possible values:
+ *                      "none" - do not select the topic (detail panel doesn't change) -- the default.
+ *                      "show" - select the topic and show its info in the detail panel.
+ *                      "edit" - select the topic and show its form in the detail panel.
  */
 function add_topic_to_canvas(topic, action) {
-    // update GUI (canvas)
-    canvas.add_topic(topic.id, topic.type_uri, topic_label(topic), true, true)
-    // update GUI (detail panel)
+    action = action || "none"   // set default
+    // update canvas
+    var highlight = action != "none"
+    canvas.add_topic(topic.id, topic.type_uri, topic_label(topic), highlight, true)
+    // update detail panel
     switch (action) {
+    case "none":
+        break
     case "show":
         render_topic(topic.id)
         break
