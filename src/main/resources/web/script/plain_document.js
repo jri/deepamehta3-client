@@ -162,7 +162,8 @@ function PlainDocument() {
     function render_buttons(context) {
         var items = get_commands(context)
         for (var i = 0, item; item = items[i]; i++) {
-            $("#lower-toolbar").append(ui.button(undefined, item.handler, item.label, item.ui_icon))
+            var button = ui.button(undefined, item.handler, item.label, item.ui_icon, item.is_submit)
+            $("#lower-toolbar").append(button)
         }
     }
 
