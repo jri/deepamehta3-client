@@ -56,9 +56,9 @@ register_field_renderer("script/datafield-renderers/reference_field_renderer.js"
 register_field_renderer("script/datafield-renderers/title_renderer.js")
 register_field_renderer("script/datafield-renderers/body_text_renderer.js")
 //
+register_plugin("script/dm3_default.js")
 register_plugin("script/dm3_fulltext.js")
 register_plugin("script/dm3_tinymce.js")
-// register_plugin("script/dm3_datafields.js")
 // css_stylesheet("style/main.css")     // layout flatters while loading
 
 $(function() {
@@ -528,18 +528,6 @@ function get_plugin(plugin_class) {
 
 function get_doctype_impl(topic) {
     return doctype_impls[get_type(topic).js_renderer_class]
-}
-
-function call_relation_function(function_name) {
-    if (function_name == "delete_relation") {
-        // update model
-        delete_relation(current_rel_id)
-        // update view
-        canvas.refresh()
-        render_topic()
-    } else {
-        alert("call_relation_function: function \"" + function_name + "\" not implemented")
-    }
 }
 
 // --- DB ---

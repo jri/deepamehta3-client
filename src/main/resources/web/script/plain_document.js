@@ -16,13 +16,7 @@ function PlainDocument() {
     $("#document-form").append($("<div>").addClass("autocomplete-list"))
     autocomplete_item = -1
 
-
-
-    /**************************************************************************************************/
-    /**************************************** Overriding Hooks ****************************************/
-    /**************************************************************************************************/
-
-
+    // ------------------------------------------------------------------------------------------------ Overriding Hooks
 
     this.render_document = function(topic) {
 
@@ -138,30 +132,7 @@ function PlainDocument() {
         ui.button("cancel-button", do_cancel_editing, "Cancel")
     }
 
-    this.context_menu_items = function() {
-        return [
-            {label: "Hide", handler: "hide"},
-            {label: "Relate", handler: "relate"}
-        ]
-    }
-
-
-
-    /************************************************************************************************/
-    /**************************************** Custom Methods ****************************************/
-    /************************************************************************************************/
-
-
-
-    /* Context Menu Commands */
-
-    this.hide = function() {
-        hide_topic(selected_topic.id)
-    }
-
-    this.relate = function(event) {
-        canvas.begin_relation(selected_topic.id, event)
-    }
+    // ------------------------------------------------------------------------------------------------- Private Methods
 
     /* Helper */
 
@@ -174,7 +145,7 @@ function PlainDocument() {
         return dmc.get_related_topics(topic_id, [field.ref_topic_type_uri], [], ["SEARCH_RESULT"])
     }
 
-    /* ---------------------------------------- Private Methods ---------------------------------------- */
+    // ---
 
     /**
      * Invoked when the user presses the "Save" button.
