@@ -252,9 +252,9 @@ function submit_document() {
 
 
 
-/****************************************************************************************/
-/**************************************** Topics ****************************************/
-/****************************************************************************************/
+/**************/
+/*** Topics ***/
+/**************/
 
 
 
@@ -312,9 +312,9 @@ function hide_topic(topic_id, is_part_of_delete_operation) {
 
 
 
-/*******************************************************************************************/
-/**************************************** Relations ****************************************/
-/*******************************************************************************************/
+/*****************/
+/*** Relations ***/
+/*****************/
 
 
 
@@ -349,9 +349,9 @@ function delete_relation(rel_id) {
 
 
 
-/***************************************************************************************/
-/**************************************** Types ****************************************/
-/***************************************************************************************/
+/*************/
+/*** Types ***/
+/*************/
 
 
 
@@ -374,9 +374,9 @@ function create_topic_type(topic_type) {
 
 
 
-/************************************************************************************************/
-/**************************************** Plugin Support ****************************************/
-/************************************************************************************************/
+/**********************/
+/*** Plugin Support ***/
+/**********************/
 
 
 
@@ -400,7 +400,7 @@ function javascript_source(source_path) {
     $("head").append($("<script>").attr("src", source_path))
 }
 
-/**************************************** Helper ****************************************/
+// ---
 
 function load_types() {
     var type_uris = dmc.get_topic_type_uris()
@@ -527,199 +527,6 @@ function get_doctype_impl(topic) {
     return doctype_impls[get_type(topic).js_renderer_class]
 }
 
-// --- DB ---
-
-function document_exists(doc_id) {
-    return dmc.get_topic(doc_id) != null
-}
-
-// --- GUI ---
-
-function create_topic_from_menu() {
-    var type_uri = ui.menu_item("create-type-menu").value
-    // 1) update DB
-    var topic = trigger_hook("custom_create_topic", type_uri)[0]
-    if (!topic) {
-        topic = create_topic(type_uri)
-    }
-    // 2) update GUI
-    add_topic_to_canvas(topic, "edit")
-}
-
-// ---
-
-function create_type_menu(menu_id, handler) {
-    var type_menu = ui.menu(menu_id, handler)
-    for (var type_uri in topic_types) {
-        // add type to menu
-        if (!contains(EXCLUDE_TYPES_FROM_MENUS, type_uri)) {
-            type_menu.add_item({label: type_label(type_uri), value: type_uri, icon: get_icon_src(type_uri)})
-        }
-    }
-    return type_menu
-}
-
-function rebuild_type_menu(menu_id) {
-    var selection = ui.menu_item(menu_id).value
-    $("#" + menu_id).replaceWith(create_type_menu(menu_id))
-    ui.select_menu_item(menu_id, selection)
-}
-
-// ---
-
-function searchmode_select() {
-    return $("<select>").attr("id", "searchmode-select")
-}
-
-function create_special_select() {
-    return $("<select>").attr("id", "special-select")
-}
-
-// - Commands -
-
-function get_commands(context) {
-    var menu_items = []
-    //
-    var item_lists = trigger_hook("add_commands", context)
-    for (var i = 0, items; items = item_lists[i]; i++) {
-        for (var j = 0, item; item = items[j]; j++) {
-            menu_items.push(item)
-        }
-    }
-    return menu_items
-}
-
-// - File upload -
-
-/**
- * @param   command     the command (a string) send to the server along with the selected file.
- * @param   callback    the function that is invoked once the file has been uploaded and processed at server-side.
- *                      One argument is passed to that function: the object (deserialzed JSON) returned by the
- *                      (server-side) executeCommandHook.
- */
-function show_upload_dialog(command, callback) {
-    $("#upload-dialog-command").attr("value", command)
-    $("#upload-dialog").dialog("open")
-    // bind callback function, using artifact ID as event namespace
-    $("#upload-target").unbind("load.deepamehta3-client")
-    $("#upload-target").bind("load.deepamehta3-client", upload_complete(callback))
-
-    function upload_complete(callback) {
-        return function() {
-            $("#upload-dialog").dialog("close")
-            // Note: iframes (the upload target) must be DOM manipulated as frames
-            var result = $("pre", window.frames["upload-target"].document).text()
-            try {
-                callback(JSON.parse(result))
-            } catch (e) {
-                alert("No valid server response: " + result + "\n(" + JSON.stringify(e) + ")")
-            }
-        }
-    }
-}
-
-// ---
-
-/**
- * @param   topics      Topics to render (array of Topic objects).
- */
-function render_topic_list(topics) {
-    var table = $("<table>")
-    for (var i = 0, topic; topic = topics[i]; i++) {
-        // icon
-        var icon_td = $("<td>").addClass("topic-icon").addClass(i == topics.length - 1 ? "last-topic" : undefined)
-        icon_td.append(render_topic_anchor(topic, type_icon_tag(topic.type_uri, "type-icon")))
-        // label
-        var topic_td = $("<td>").addClass("topic-label").addClass(i == topics.length - 1 ? "last-topic" : undefined)
-        var list_item = $("<div>").append(render_topic_anchor(topic, topic.label))
-        trigger_hook("render_topic_list_item", topic, list_item)
-        topic_td.append(list_item)
-        //
-        table.append($("<tr>").append(icon_td).append(topic_td))
-    }
-    return table
-}
-
-/**
- * @param   topic       Topic to render (a Topic object).
- */
-function render_topic_anchor(topic, anchor_content) {
-    return $("<a>").attr({href: "#"}).append(anchor_content).click(function() {
-        reveal_topic(topic.id, true)
-        return false
-    })
-}
-
-//
-
-/**
- * @return  The <img> element (jQuery object).
- */
-function type_icon_tag(type_uri, css_class) {
-    return image_tag(get_icon_src(type_uri), css_class)
-}
-
-/**
- * @return  The <img> element (jQuery object).
- */
-function image_tag(src, css_class) {
-    return $("<img>").attr("src", src).addClass(css_class)
-}
-
-/**
- * Returns the icon source for a topic type.
- * If no icon is configured for that type the source of the generic topic icon is returned.
- *
- * @return  The icon source (string).
- */
-function get_icon_src(type_uri) {
-    // Note: topic_types[type_uri] is undefined if plugin is deactivated and content still exist.
-    if (topic_types[type_uri] && topic_types[type_uri].icon_src) {
-        return topic_types[type_uri].icon_src
-    } else {
-        return GENERIC_TOPIC_ICON_SRC
-    }
-}
-
-/**
- * Returns the icon for a topic type.
- * If no icon is configured for that type the generic topic icon is returned.
- *
- * @return  The icon (JavaScript Image object)
- */
-function get_type_icon(type) {
-    var icon = topic_type_icons[type]
-    return icon || generic_topic_icon
-}
-
-function create_image(src) {
-    var img = new Image()
-    img.src = src   // Note: if src is a relative URL JavaScript extends img.src to an absolute URL
-    img.onload = function(arg0) {
-        // Note: "this" is the image. The argument is the "load" event.
-        if (LOG_IMAGE_LOADING) log("Image ready: " + src)
-        notify_image_trackers()
-    }
-    return img
-}
-
-//
-
-function empty_detail_panel() {
-    $("#detail-panel").empty()
-    $("#lower-toolbar").empty()
-}
-
-function render_object(object) {
-    var table = $("<table>")
-    for (var name in object) {
-        var td1 = $("<td>").append(name)
-        var td2 = $("<td>").append(object[name])
-        table.append($("<tr>").append(td1).append(td2))
-    }
-    return table
-}
-
 
 
 // ******************
@@ -830,7 +637,13 @@ function set_topic_type_label(type_uri, label) {
     topic_types[type_uri].label = label
 }
 
-// ---
+
+
+/**************/
+/*** Helper ***/
+/**************/
+
+
 
 function get_value(topic, field_uri) {
     var value = topic.properties[field_uri]
@@ -864,11 +677,268 @@ function type_label(type_uri) {
     return topic_types[type_uri].label
 }
 
+// === Cookie Support ===
+
+function set_cookie(key, value) {
+    document.cookie = key + "=" + value + ";path=" + CORE_SERVICE_URI
+}
+
+// === DB ===
+
+function document_exists(doc_id) {
+    return dmc.get_topic(doc_id) != null
+}
+
+// === GUI ===
+
+function create_topic_from_menu() {
+    var type_uri = ui.menu_item("create-type-menu").value
+    // 1) update DB
+    var topic = trigger_hook("custom_create_topic", type_uri)[0]
+    if (!topic) {
+        topic = create_topic(type_uri)
+    }
+    // 2) update GUI
+    add_topic_to_canvas(topic, "edit")
+}
+
+// ---
+
+function create_type_menu(menu_id, handler) {
+    var type_menu = ui.menu(menu_id, handler)
+    for (var type_uri in topic_types) {
+        // add type to menu
+        if (!contains(EXCLUDE_TYPES_FROM_MENUS, type_uri)) {
+            type_menu.add_item({label: type_label(type_uri), value: type_uri, icon: get_icon_src(type_uri)})
+        }
+    }
+    return type_menu
+}
+
+function rebuild_type_menu(menu_id) {
+    var selection = ui.menu_item(menu_id).value
+    $("#" + menu_id).replaceWith(create_type_menu(menu_id))
+    ui.select_menu_item(menu_id, selection)
+}
+
+// ---
+
+function searchmode_select() {
+    return $("<select>").attr("id", "searchmode-select")
+}
+
+function create_special_select() {
+    return $("<select>").attr("id", "special-select")
+}
+
+// --- Commands ---
+
+function get_commands(context) {
+    var menu_items = []
+    //
+    var item_lists = trigger_hook("add_commands", context)
+    for (var i = 0, items; items = item_lists[i]; i++) {
+        for (var j = 0, item; item = items[j]; j++) {
+            menu_items.push(item)
+        }
+    }
+    return menu_items
+}
+
+// --- File upload ---
+
+/**
+ * @param   command     the command (a string) send to the server along with the selected file.
+ * @param   callback    the function that is invoked once the file has been uploaded and processed at server-side.
+ *                      One argument is passed to that function: the object (deserialzed JSON) returned by the
+ *                      (server-side) executeCommandHook.
+ */
+function show_upload_dialog(command, callback) {
+    $("#upload-dialog-command").attr("value", command)
+    $("#upload-dialog").dialog("open")
+    // bind callback function, using artifact ID as event namespace
+    $("#upload-target").unbind("load.deepamehta3-client")
+    $("#upload-target").bind("load.deepamehta3-client", upload_complete(callback))
+
+    function upload_complete(callback) {
+        return function() {
+            $("#upload-dialog").dialog("close")
+            // Note: iframes (the upload target) must be DOM manipulated as frames
+            var result = $("pre", window.frames["upload-target"].document).text()
+            try {
+                callback(JSON.parse(result))
+            } catch (e) {
+                alert("No valid server response: " + result + "\n(" + JSON.stringify(e) + ")")
+            }
+        }
+    }
+}
+
+// --- Image Tracker ---
+
+var image_tracker
+
+function create_image_tracker(callback_func) {
+
+    return image_tracker = new ImageTracker()
+
+    function ImageTracker() {
+
+        var types = []      // topic types whose images are tracked
+
+        this.add_type = function(type) {
+            if (!contains(types, type)) {
+                types.push(type)
+            }
+        }
+
+        // Checks if the tracked images are loaded completely.
+        // If so, the callback is triggered and this tracker is removed.
+        this.check = function() {
+            if (types.every(function(type) {return get_type_icon(type).complete})) {
+                callback_func()
+                image_tracker = undefined
+            }
+        }
+    }
+}
+
+function notify_image_trackers() {
+    image_tracker && image_tracker.check()
+}
+
+// ---
+
+/**
+ * @param   topics      Topics to render (array of Topic objects).
+ */
+function render_topic_list(topics) {
+    var table = $("<table>")
+    for (var i = 0, topic; topic = topics[i]; i++) {
+        // icon
+        var icon_td = $("<td>").addClass("topic-icon").addClass(i == topics.length - 1 ? "last-topic" : undefined)
+        icon_td.append(render_topic_anchor(topic, type_icon_tag(topic.type_uri, "type-icon")))
+        // label
+        var topic_td = $("<td>").addClass("topic-label").addClass(i == topics.length - 1 ? "last-topic" : undefined)
+        var list_item = $("<div>").append(render_topic_anchor(topic, topic.label))
+        trigger_hook("render_topic_list_item", topic, list_item)
+        topic_td.append(list_item)
+        //
+        table.append($("<tr>").append(icon_td).append(topic_td))
+    }
+    return table
+}
+
+/**
+ * @param   topic       Topic to render (a Topic object).
+ */
+function render_topic_anchor(topic, anchor_content) {
+    return $("<a>").attr({href: "#"}).append(anchor_content).click(function() {
+        reveal_topic(topic.id, true)
+        return false
+    })
+}
+
+//
+
+/**
+ * @return  The <img> element (jQuery object).
+ */
+function type_icon_tag(type_uri, css_class) {
+    return image_tag(get_icon_src(type_uri), css_class)
+}
+
+/**
+ * @return  The <img> element (jQuery object).
+ */
+function image_tag(src, css_class) {
+    return $("<img>").attr("src", src).addClass(css_class)
+}
+
+/**
+ * Returns the icon source for a topic type.
+ * If no icon is configured for that type the source of the generic topic icon is returned.
+ *
+ * @return  The icon source (string).
+ */
+function get_icon_src(type_uri) {
+    // Note: topic_types[type_uri] is undefined if plugin is deactivated and content still exist.
+    if (topic_types[type_uri] && topic_types[type_uri].icon_src) {
+        return topic_types[type_uri].icon_src
+    } else {
+        return GENERIC_TOPIC_ICON_SRC
+    }
+}
+
+/**
+ * Returns the icon for a topic type.
+ * If no icon is configured for that type the generic topic icon is returned.
+ *
+ * @return  The icon (JavaScript Image object)
+ */
+function get_type_icon(type) {
+    var icon = topic_type_icons[type]
+    return icon || generic_topic_icon
+}
+
+function create_image(src) {
+    var img = new Image()
+    img.src = src   // Note: if src is a relative URL JavaScript extends img.src to an absolute URL
+    img.onload = function(arg0) {
+        // Note: "this" is the image. The argument is the "load" event.
+        if (LOG_IMAGE_LOADING) log("Image ready: " + src)
+        notify_image_trackers()
+    }
+    return img
+}
+
+//
+
+function empty_detail_panel() {
+    $("#detail-panel").empty()
+    $("#lower-toolbar").empty()
+}
+
+function render_object(object) {
+    var table = $("<table>")
+    for (var name in object) {
+        var td1 = $("<td>").append(name)
+        var td2 = $("<td>").append(object[name])
+        table.append($("<tr>").append(td1).append(td2))
+    }
+    return table
+}
 
 
-// *****************
-// *** Utilities ***
-// *****************
+
+/**********************/
+/*** Helper Classes ***/
+/**********************/
+
+
+
+// FIXME: not in use.
+function Topic(id, type_uri, label, properties) {
+    this.id = id
+    this.type_uri = type_uri
+    this.label = label
+    this.properties = properties
+}
+
+// FIXME: not in use.
+function Relation(id, type_id, src_topic_id, dst_topic_id, properties) {
+    this.id = id
+    this.type_id = type_id
+    this.src_topic_id = src_topic_id
+    this.dst_topic_id = dst_topic_id
+    this.properties = properties
+}
+
+
+
+/************************************/
+/*** Generic JavaScript Utilities ***/
+/************************************/
 
 
 
@@ -1089,62 +1159,4 @@ function to_binary(str) {
         binary += String.fromCharCode(str.charCodeAt(i) & 0xFF)
     }
     return binary
-}
-
-/*** Helper Classes ***/
-
-// FIXME: not in use.
-function Topic(id, type_uri, label, properties) {
-    this.id = id
-    this.type_uri = type_uri
-    this.label = label
-    this.properties = properties
-}
-
-// FIXME: not in use.
-function Relation(id, type_id, src_topic_id, dst_topic_id, properties) {
-    this.id = id
-    this.type_id = type_id
-    this.src_topic_id = src_topic_id
-    this.dst_topic_id = dst_topic_id
-    this.properties = properties
-}
-
-// === Image Tracker ===
-
-var image_tracker
-
-function create_image_tracker(callback_func) {
-
-    return image_tracker = new ImageTracker()
-
-    function ImageTracker() {
-
-        var types = []      // topic types whose images are tracked
-
-        this.add_type = function(type) {
-            if (!contains(types, type)) {
-                types.push(type)
-            }
-        }
-
-        // Checks if the tracked images are loaded completely.
-        // If so, the callback is triggered and this tracker is removed.
-        this.check = function() {
-            if (types.every(function(type) {return get_type_icon(type).complete})) {
-                callback_func()
-                image_tracker = undefined
-            }
-        }
-    }
-}
-
-function notify_image_trackers() {
-    image_tracker && image_tracker.check()
-}
-
-// === Cookie Support ===
-
-function set_cookie(key, value) {
-    document.cookie = key + "=" + value + ";path=" + CORE_SERVICE_URI
 }
