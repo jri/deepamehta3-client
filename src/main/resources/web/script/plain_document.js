@@ -5,13 +5,7 @@ function PlainDocument() {
     // Settings
     DEFAULT_FIELD_WIDTH = 60    // in chars
     DEFAULT_AREA_HEIGHT = 30    // in chars
-    DELETE_DIALOG_WIDTH = 350   // in pixel
 
-    // The delete dialog
-    $("#delete_dialog").dialog({
-        modal: true, autoOpen: false, draggable: false, resizable: false, width: DELETE_DIALOG_WIDTH,
-        buttons: {"Delete": do_delete}
-    })
     // The autocomplete list
     $("#document-form").append($("<div>").addClass("autocomplete-list"))
     autocomplete_item = -1
@@ -23,9 +17,10 @@ function PlainDocument() {
         field_renderers = {}            // key: field URI, value: renderer object
         var defined_relation_topics = []
 
+        empty_detail_panel()
         render_fields()
         render_relations()
-        render_buttons()
+        render_buttons("detail panel show")
 
         function render_fields() {
             for (var i = 0, field; field = get_type(topic).fields[i]; i++) {
@@ -69,13 +64,6 @@ function PlainDocument() {
             field_value.append(render_topic_list(topics))
             $("#detail-panel").append(field_value)
         }
-
-        function render_buttons() {
-            $("#lower-toolbar").append("<button id='edit-button' type='button'>")
-            $("#lower-toolbar").append("<button id='delete-button' type='button'>")
-            ui.button("edit-button", edit_document, "Edit", "pencil")
-            ui.button("delete-button", confirm_delete, "Delete", "trash")
-        }
     }
 
     this.render_form = function(topic) {
@@ -85,72 +73,49 @@ function PlainDocument() {
         plain_doc = this
 
         empty_detail_panel()
-
         trigger_hook("pre_render_form", topic)
+        render_fields()
+        render_buttons("detail panel edit")
 
-        for (var i = 0, field; field = get_type(topic).fields[i]; i++) {
-            if (!field.editable) {
-                continue
+        function render_fields() {
+            for (var i = 0, field; field = get_type(topic).fields[i]; i++) {
+                if (!field.editable) {
+                    continue
+                }
+                // create renderer
+                if (!field.js_renderer_class) {
+                    alert("WARNING (PlainDocument.render_form):\n\nField \"" + field.label +
+                        "\" has no field renderer.\n\nfield=" + JSON.stringify(field))
+                    continue
+                }
+                var rel_topics = related_topics(field)
+                field_renderers[field.uri] = new_object(field.js_renderer_class, topic, field, rel_topics)
+                // render field label
+                render.field_label(field)
+                // render form element
+                var html = trigger_renderer_hook(field, "render_form_element")
+                if (html !== undefined) {
+                    $("#detail-panel").append($("<div>").addClass("field-value").append(html))
+                    trigger_renderer_hook(field, "post_render_form_element")
+                } else {
+                    alert("WARNING (PlainDocument.render_form):\n\nRenderer for field \"" + field.label + "\" " +
+                        "returned no form element.\n\ntopic ID=" + topic.id + "\nfield=" + JSON.stringify(field))
+                }
             }
-            // create renderer
-            if (!field.js_renderer_class) {
-                alert("WARNING (PlainDocument.render_form):\n\nField \"" + field.label +
-                    "\" has no field renderer.\n\nfield=" + JSON.stringify(field))
-                continue
-            }
-            var rel_topics = related_topics(field)
-            field_renderers[field.uri] = new_object(field.js_renderer_class, topic, field, rel_topics)
-            // render field label
-            render.field_label(field)
-            // render form element
-            var html = trigger_renderer_hook(field, "render_form_element")
-            if (html !== undefined) {
-                $("#detail-panel").append($("<div>").addClass("field-value").append(html))
-                trigger_renderer_hook(field, "post_render_form_element")
-            } else {
-                alert("WARNING (PlainDocument.render_form):\n\nRenderer for field \"" + field.label + "\" " +
-                    "returned no form element.\n\ntopic ID=" + topic.id + "\nfield=" + JSON.stringify(field))
+
+            function related_topics(field) {
+                if (field.data_type == "reference") {
+                    var topics = get_relation_field_content(topic.id, field)
+                    // buffer current topic selection to compare it at submit time
+                    plain_doc.topic_buffer[field.uri] = topics
+                    //
+                    return topics
+                }
             }
         }
-
-        function related_topics(field) {
-            if (field.data_type == "reference") {
-                var topics = get_relation_field_content(topic.id, field)
-                // buffer current topic selection to compare it at submit time
-                plain_doc.topic_buffer[field.uri] = topics
-                //
-                return topics
-            }
-        }
     }
 
-    this.post_render_form = function(doc) {
-        // buttons
-        $("#lower-toolbar").append("<button id='save-button' type='button'>")
-        $("#lower-toolbar").append("<button id='cancel-button' type='button'>")
-        ui.button("save-button", do_save, "Save", "circle-check", true)
-        ui.button("cancel-button", do_cancel_editing, "Cancel")
-    }
-
-    // ------------------------------------------------------------------------------------------------- Private Methods
-
-    /* Helper */
-
-    /**
-     * Returns the content of a field of type "reference".
-     *
-     * @return  Array of Topic objects.
-     */
-    function get_relation_field_content(topic_id, field) {
-        return dmc.get_related_topics(topic_id, [field.ref_topic_type_uri], [], ["SEARCH_RESULT"])
-    }
-
-    // ---
-
-    /**
-     * Invoked when the user presses the "Save" button.
-     */
-    function do_save() {
+    this.process_form = function() {
         //
         trigger_hook("pre_submit_form", selected_topic)
         //
@@ -190,22 +155,24 @@ function PlainDocument() {
         trigger_hook("post_set_topic_label", topic_id, label)
     }
 
-    function do_cancel_editing() {
-        //
-        trigger_hook("post_submit_form", selected_topic)
-        //
-        render_topic()
+    // ------------------------------------------------------------------------------------------------- Private Methods
+
+    /* Helper */
+
+    function render_buttons(context) {
+        var items = get_commands(context)
+        for (var i = 0, item; item = items[i]; i++) {
+            $("#lower-toolbar").append(ui.button(undefined, item.handler, item.label, item.ui_icon))
+        }
     }
 
-    /* Delete */
-
-    function confirm_delete() {
-        $("#delete_dialog").dialog("open")
-    }
-
-    function do_delete() {
-        $("#delete_dialog").dialog("close")
-        delete_topic(selected_topic)
+    /**
+     * Returns the content of a field of type "reference".
+     *
+     * @return  Array of Topic objects.
+     */
+    function get_relation_field_content(topic_id, field) {
+        return dmc.get_related_topics(topic_id, [field.ref_topic_type_uri], [], ["SEARCH_RESULT"])
     }
 
     /* Field Renderer */

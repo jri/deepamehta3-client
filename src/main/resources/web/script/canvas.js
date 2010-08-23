@@ -465,30 +465,18 @@ function Canvas() {
             //
             select_topic(ct.id, true)
             //
-            var items = get_menu_items("topic")
+            var items = get_commands("topic")
             open_context_menu(items, "topic", event)
         } else {
             var ca = assoc_by_position(event)
             if (ca) {
                 current_rel_id = ca.id
                 draw()
-                var items = get_menu_items("relation")
+                var items = get_commands("relation")
                 open_context_menu(items, "relation", event)
             }
         }
         return false
-
-        function get_menu_items(context) {
-            var menu_items = []
-            //
-            var item_lists = trigger_hook("add_commands", context)
-            for (var i = 0, items; items = item_lists[i]; i++) {
-                for (var j = 0, item; item = items[j]; j++) {
-                    menu_items.push(item)
-                }
-            }
-            return menu_items
-        }
     }
 
     /**
@@ -501,9 +489,13 @@ function Canvas() {
             left: event.layerX + "px"
         })
         for (var i = 0, item; item = items[i]; i++) {
-            var handler = context_menu_handler(context, item.handler)
-            var a = $("<a>").attr("href", "#").click(handler).text(item.label)
-            contextmenu.append(a)
+            if (item == "---") {
+                contextmenu.append("<hr>")
+            } else {
+                var handler = context_menu_handler(context, item.handler)
+                var a = $("<a>").attr("href", "#").click(handler).text(item.label)
+                contextmenu.append(a)
+            }
         }
         $("#canvas-panel").append(contextmenu)
 

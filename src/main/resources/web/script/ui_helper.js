@@ -16,9 +16,9 @@ function UIHelper() {
      *          <span>                  - the button's icon (provided it has an icon)
      *          button_label            - the button's label (a text node)
      *
-     * @param   id          ID of the <button> element that is transformed to a jQuery UI button. If no such DOM element
-     *                      exists in the document, a button element is created and the caller is responsible for adding
-     *                      the returned button to the DOM tree.
+     * @param   id          Optional: ID of the <button> element that is transformed to a jQuery UI button.
+     *                      If no such DOM element exists in the document (or if "id" is undefined), a button element
+     *                      is created and the caller is responsible for adding the returned button to the DOM tree.
      * @param   handler     The callback function.
      *
      * @return              The button (a jQuery object).
@@ -29,11 +29,15 @@ function UIHelper() {
             alert("WARNING (UIHelper.button): No handler specified for button \"" + id + "\"");
         }
         //
-        var button = $("#" + id)
-        if (button.length == 0) {
-            // Note: type="button" is required. Otherwise the button acts as submit button (if contained in a form).
-            // Update: type="button" moved into element because attr("type", ...) is ignored in jQuery 1.4/Safari.
-            button = $("<button type='button'>").attr("id", id)
+        if (id) {
+            var button = $("#" + id)
+            if (button.length == 0) {
+                // Note: type="button" is required. Otherwise the button acts as submit button (if contained in a form).
+                // Update: type="button" moved into element because attr("type", ...) is ignored in jQuery 1.4/Safari.
+                button = $("<button type='button'>").attr("id", id)
+            }
+        } else {
+            button = $("<button type='button'>")
         }
         // Note: pseudo-attribute "submit" TODO: explain
         button.attr({submit: is_submit}).click(handler)

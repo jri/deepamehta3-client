@@ -236,14 +236,11 @@ function render_topic(doc_id) {
     // update global state
     selected_topic = topic
     //
-    empty_detail_panel()
-    //
     trigger_doctype_hook(selected_topic, "render_document", selected_topic)
 }
 
 function edit_document() {
-    trigger_doctype_hook(selected_topic,      "render_form", selected_topic)
-    trigger_doctype_hook(selected_topic, "post_render_form", selected_topic)
+    trigger_doctype_hook(selected_topic, "render_form", selected_topic)
 }
 
 function submit_document() {
@@ -576,6 +573,20 @@ function searchmode_select() {
 
 function create_special_select() {
     return $("<select>").attr("id", "special-select")
+}
+
+// - Commands -
+
+function get_commands(context) {
+    var menu_items = []
+    //
+    var item_lists = trigger_hook("add_commands", context)
+    for (var i = 0, items; items = item_lists[i]; i++) {
+        for (var j = 0, item; item = items[j]; j++) {
+            menu_items.push(item)
+        }
+    }
+    return menu_items
 }
 
 // - File upload -
