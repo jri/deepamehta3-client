@@ -2,9 +2,9 @@ function UIHelper() {
 
 
 
-    /***************/
-    /*** Buttons ***/
-    /***************/
+    /**************/
+    /*** Button ***/
+    /**************/
 
 
 
@@ -55,10 +55,30 @@ function UIHelper() {
 
 
 
+    /******************/
+    /*** Dialog Box ***/
+    /******************/
 
-    /*************/
-    /*** Menus ***/
-    /*************/
+
+
+    // Settings
+    var DIALOG_WIDTH = 350   // in pixel
+
+    this.dialog = function(id, title, button_label, button_handler) {
+        var dialog = $("<div>", {id: id})
+        var buttons = {}; buttons[button_label] = button_handler
+        $("body").append(dialog)
+        dialog.dialog({
+            modal: true, autoOpen: false, draggable: false, resizable: false, width: DIALOG_WIDTH,
+            title: title, buttons: buttons
+        })
+    }
+
+
+
+    /************/
+    /*** Menu ***/
+    /************/
 
 
 
@@ -348,24 +368,5 @@ function UIHelper() {
 
     this.menu_item = function(menu_id) {
         return menus[menu_id].get_selection()
-    }
-
-
-
-    /*****************/
-    /*** Utilities ***/
-    /*****************/
-
-
-
-    function add_hover_effect(button) {
-        button.hover(
-            function(){ 
-                button.addClass("ui-state-hover"); 
-            },
-            function(){ 
-                button.removeClass("ui-state-hover"); 
-            }
-        )
     }
 }

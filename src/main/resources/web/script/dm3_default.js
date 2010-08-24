@@ -1,16 +1,10 @@
 function dm3_default () {
 
-    // Settings
-    DELETE_DIALOG_WIDTH = 350   // in pixel
-
     // ------------------------------------------------------------------------------------------------ Overriding Hooks
 
     this.init = function() {
-        // The delete dialog
-        $("#delete-dialog").dialog({
-            modal: true, autoOpen: false, draggable: false, resizable: false, width: DELETE_DIALOG_WIDTH,
-            buttons: {"Delete": do_delete}
-        })
+        ui.dialog("delete-topic-dialog", "Delete Topic?", "Delete", do_delete_topic)
+        ui.dialog("delete-relation-dialog", "Delete Relation?", "Delete", do_delete_relation)
     }
 
     this.add_commands = function(context) {
@@ -20,11 +14,11 @@ function dm3_default () {
                 {label: "Hide",   handler: do_hide_topic},
                 {label: "Relate", handler: do_relate},
                 "---",
-                {label: "Delete", handler: do_confirm_delete}      // as button had "ui-icon-trash"
+                {label: "Delete", handler: do_confirm_delete_topic}      // as button had "ui-icon-trash"
             ]
         case "relation":
             return [
-                {label: "Delete", handler: do_delete_relation}
+                {label: "Delete", handler: do_confirm_delete_relation}
             ]
         case "canvas":
             break
@@ -52,18 +46,23 @@ function dm3_default () {
         canvas.begin_relation(selected_topic.id, event)
     }
 
-    function do_confirm_delete() {
-        $("#delete-dialog").dialog("open")
+    function do_confirm_delete_topic() {
+        $("#delete-topic-dialog").dialog("open")
     }
 
-    function do_delete() {
-        $("#delete-dialog").dialog("close")
+    function do_delete_topic() {
+        $("#delete-topic-dialog").dialog("close")
         delete_topic(selected_topic)
     }
 
     /*** Relation Commands ***/
 
+    function do_confirm_delete_relation() {
+        $("#delete-relation-dialog").dialog("open")
+    }
+
     function do_delete_relation() {
+        $("#delete-relation-dialog").dialog("close")
         // update model
         delete_relation(current_rel_id)
         // update view
