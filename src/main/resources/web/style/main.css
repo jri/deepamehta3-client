@@ -129,6 +129,11 @@ body {
     background: #555;
 }
 
+.contextmenu hr {
+    margin-top: 0.3em;
+    margin-bottom: 0.3em;
+}
+
 /*** Autocomplete List ***/
 
 .autocomplete-list {

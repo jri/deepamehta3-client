@@ -18,6 +18,8 @@ function dm3_default () {
             ]
         case "relation":
             return [
+                {label: "Hide",   handler: do_hide_relation},
+                "---",
                 {label: "Delete", handler: do_confirm_delete_relation}
             ]
         case "canvas":
@@ -56,6 +58,13 @@ function dm3_default () {
     }
 
     /*** Relation Commands ***/
+
+    function do_hide_relation() {
+        // update model
+        hide_relation(current_rel_id)
+        // update view
+        canvas.refresh()
+    }
 
     function do_confirm_delete_relation() {
         $("#delete-relation-dialog").dialog("open")

@@ -344,6 +344,10 @@ function delete_relation(rel_id) {
     // update DB
     dmc.delete_relation(rel_id)
     // update GUI
+    hide_relation(rel_id)
+}
+
+function hide_relation(rel_id) {
     canvas.remove_relation(rel_id)
 }
 
