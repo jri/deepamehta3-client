@@ -84,6 +84,18 @@ function UIHelper() {
 
     var menus = {}          // key: menu ID, value: a Menu object
 
+    $(function() {
+        // Close open menus when clicked elsewhere.
+        // Note: a neater way would be to let the menu close itself by let its button react on blur.
+        // This would work in Firefox but unfortunately Safari doesn't fire blur events for buttons.
+        $("body").click(function() {
+            if (LOG_GUI) log("Body clicked -- hide all menus")
+            hide_all_menus()
+        })
+    })
+
+    // ------------------------------------------------------------------------------------------------------ Public API
+
     /**
      * Creates and returns a menu.
      *
@@ -183,7 +195,7 @@ function UIHelper() {
             }
 
             this.hide = function() {
-                hide()
+                hide_menu()
             }
 
             this.dom = dom
@@ -205,7 +217,7 @@ function UIHelper() {
                         add_item({label: $(this).text(), value: this.value})
                     })
                 }
-                hide()
+                hide_menu()
             }
 
             /**
@@ -260,7 +272,7 @@ function UIHelper() {
                 var item = get_item($(this))
                 select_item(item)
                 // 2) hide menu
-                hide()
+                hide_menu()
                 // 3) call handler
                 if (handler) {
                      handler(item, menu_id)
@@ -271,14 +283,14 @@ function UIHelper() {
             /**
              * Calculates the position of the menu and shows it.
              */
-            function show() {
+            function show_menu() {
                 var pos = button.position()
                 var height = button.outerHeight()
                 menu.css({top: pos.top + height, left: pos.left})
                 menu.show()
             }
 
-            function hide() {
+            function hide_menu() {
                 menu.hide()
             }
 
@@ -300,13 +312,14 @@ function UIHelper() {
             }
 
             function button_clicked() {
-                // log("Button of menu \"" + menu_id + "\" clicked")
+                if (LOG_GUI) log("Button of menu \"" + menu_id + "\" clicked")
                 if (menu.css("display") == "none") {
                     hide_all_menus()
-                    show()
+                    show_menu()
                 } else {
-                    hide()
+                    hide_menu()
                 }
+                return false
             }
 
             /****************************** The Compound ******************************/
@@ -339,12 +352,6 @@ function UIHelper() {
                 return anchor_id.substring((menu_id + "_item_").length)
             }
         }
-
-        function hide_all_menus() {
-            for (var menu_id in menus) {
-                menus[menu_id].hide()
-            }
-        }
     }
 
     /**
@@ -368,5 +375,13 @@ function UIHelper() {
 
     this.menu_item = function(menu_id) {
         return menus[menu_id].get_selection()
+    }
+
+    // ----------------------------------------------------------------------------------------------- Private Functions
+
+    function hide_all_menus() {
+        for (var menu_id in menus) {
+            menus[menu_id].hide()
+        }
     }
 }
