@@ -465,57 +465,42 @@ function Canvas() {
             //
             select_topic(ct.id, true)
             //
-            var items = get_commands("topic")
-            open_context_menu(items, "topic", event)
+            var commands = get_topic_commands(ct, "context menu")
+            open_context_menu(commands, event)
         } else {
             var ca = assoc_by_position(event)
             if (ca) {
                 current_rel_id = ca.id
                 draw()
-                var items = get_commands("relation")
-                open_context_menu(items, "relation", event)
+                var commands = get_relation_commands(ca, "context menu")
+                open_context_menu(commands, event)
             }
         }
         return false
     }
 
-    /**
-     * @param   context    "topic" / "relation" / "canvas"
-     */
-    function open_context_menu(items, context, event) {
+    function open_context_menu(commands, event) {
         var contextmenu = $("<div>").addClass("contextmenu").css({
             position: "absolute",
             top:  event.layerY + "px",
             left: event.layerX + "px"
         })
-        for (var i = 0, item; item = items[i]; i++) {
-            if (item == "---") {
+        for (var i = 0, cmd; cmd = commands[i]; i++) {
+            if (cmd.is_separator) {
                 contextmenu.append("<hr>")
             } else {
-                var handler = context_menu_handler(context, item.handler)
-                var a = $("<a>").attr("href", "#").click(handler).text(item.label)
+                var handler = context_menu_handler(cmd.handler)
+                var a = $("<a>").attr("href", "#").click(handler).text(cmd.label)
                 contextmenu.append(a)
             }
         }
         $("#canvas-panel").append(contextmenu)
 
-        function context_menu_handler(context, handler) {
-            // FIXME: switch required?
-            switch (context) {
-            case "topic":
-                return function(event) {
-                    handler(event)
-                    canvas.close_context_menu()
-                    return false
-                }
-            case "relation":
-                return function(event) {
-                    handler(event)
-                    canvas.close_context_menu()
-                    return false
-                }
-            default:
-                alert("context_menu_handler: unexpected context \"" + context + "\"")
+        function context_menu_handler(handler) {
+            return function(event) {
+                handler(event)
+                canvas.close_context_menu()
+                return false
             }
         }
     }

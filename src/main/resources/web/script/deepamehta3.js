@@ -681,13 +681,35 @@ function type_label(type_uri) {
     return topic_types[type_uri].label
 }
 
-// === Cookie Support ===
+// --- Commands ---
+
+function get_topic_commands(topic, context) {
+    return get_commands(trigger_hook("add_topic_commands", topic), context)
+}
+
+function get_relation_commands(relation, context) {
+    return get_commands(trigger_hook("add_relation_commands", relation), context)
+}
+
+function get_commands(cmd_lists, context) {
+    var commands = []
+    for (var i = 0, cmds; cmds = cmd_lists[i]; i++) {
+        for (var j = 0, cmd; cmd = cmds[j]; j++) {
+            if (cmd.context == context) {
+                commands.push(cmd)
+            }
+        }
+    }
+    return commands
+}
+
+// --- Cookie Support ---
 
 function set_cookie(key, value) {
     document.cookie = key + "=" + value + ";path=" + CORE_SERVICE_URI
 }
 
-// === DB ===
+// --- DB ---
 
 function document_exists(doc_id) {
     return dmc.get_topic(doc_id) != null
@@ -733,20 +755,6 @@ function searchmode_select() {
 
 function create_special_select() {
     return $("<select>").attr("id", "special-select")
-}
-
-// --- Commands ---
-
-function get_commands(context) {
-    var menu_items = []
-    //
-    var item_lists = trigger_hook("add_commands", context)
-    for (var i = 0, items; items = item_lists[i]; i++) {
-        for (var j = 0, item; item = items[j]; j++) {
-            menu_items.push(item)
-        }
-    }
-    return menu_items
 }
 
 // --- File upload ---
@@ -901,16 +909,6 @@ function create_image(src) {
 function empty_detail_panel() {
     $("#detail-panel").empty()
     $("#lower-toolbar").empty()
-}
-
-function render_object(object) {
-    var table = $("<table>")
-    for (var name in object) {
-        var td1 = $("<td>").append(name)
-        var td2 = $("<td>").append(object[name])
-        table.append($("<tr>").append(td1).append(td2))
-    }
-    return table
 }
 
 

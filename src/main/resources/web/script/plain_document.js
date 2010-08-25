@@ -20,7 +20,7 @@ function PlainDocument() {
         empty_detail_panel()
         render_fields()
         render_relations()
-        render_buttons("detail panel show")
+        render_buttons(topic, "detail panel show")
 
         function render_fields() {
             for (var i = 0, field; field = get_type(topic).fields[i]; i++) {
@@ -75,7 +75,7 @@ function PlainDocument() {
         empty_detail_panel()
         trigger_hook("pre_render_form", topic)
         render_fields()
-        render_buttons("detail panel edit")
+        render_buttons(topic, "detail panel edit")
 
         function render_fields() {
             for (var i = 0, field; field = get_type(topic).fields[i]; i++) {
@@ -157,12 +157,18 @@ function PlainDocument() {
 
     // ------------------------------------------------------------------------------------------------- Private Methods
 
-    /* Helper */
 
-    function render_buttons(context) {
-        var items = get_commands(context)
-        for (var i = 0, item; item = items[i]; i++) {
-            var button = ui.button(undefined, item.handler, item.label, item.ui_icon, item.is_submit)
+
+    /**************/
+    /*** Helper ***/
+    /**************/
+
+
+
+    function render_buttons(topic, context) {
+        var commands = get_topic_commands(topic, context)
+        for (var i = 0, cmd; cmd = commands[i]; i++) {
+            var button = ui.button(undefined, cmd.handler, cmd.label, cmd.ui_icon, cmd.is_submit)
             $("#lower-toolbar").append(button)
         }
     }
@@ -176,7 +182,7 @@ function PlainDocument() {
         return dmc.get_related_topics(topic_id, [field.ref_topic_type_uri], [], ["SEARCH_RESULT"])
     }
 
-    /* Field Renderer */
+    // --- Field Renderer ---
 
     /**
      * Triggers a renderer hook for the given field.

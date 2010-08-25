@@ -3,92 +3,77 @@ function dm3_default () {
     // ------------------------------------------------------------------------------------------------ Overriding Hooks
 
     this.init = function() {
+
         ui.dialog("delete-topic-dialog", "Delete Topic?", "Delete", do_delete_topic)
         ui.dialog("delete-relation-dialog", "Delete Relation?", "Delete", do_delete_relation)
-    }
 
-    this.add_commands = function(context) {
-        switch (context) {
-        case "topic":
-            return [
-                {label: "Hide",   handler: do_hide_topic},
-                {label: "Relate", handler: do_relate},
-                "---",
-                {label: "Delete", handler: do_confirm_delete_topic}      // as button had "ui-icon-trash"
-            ]
-        case "relation":
-            return [
-                {label: "Hide",   handler: do_hide_relation},
-                "---",
-                {label: "Delete", handler: do_confirm_delete_relation}
-            ]
-        case "canvas":
-            break
-        case "detail panel show":
-            return [
-                {label: "Edit", handler: edit_document, ui_icon: "pencil"}
-            ]
-        case "detail panel edit":
-            return [
-                {label: "Save", handler: do_save, ui_icon: "circle-check", is_submit: true},
-                {label: "Cancel", handler: do_cancel_editing}
-            ]
+        function do_delete_topic() {
+            $("#delete-topic-dialog").dialog("close")
+            delete_topic(selected_topic)
+        }
+
+        function do_delete_relation() {
+            $("#delete-relation-dialog").dialog("close")
+            // update model
+            delete_relation(current_rel_id)
+            // update view
+            canvas.refresh()
+            render_topic()
         }
     }
 
-    // ----------------------------------------------------------------------------------------------- Private Functions
+    this.add_topic_commands = function(topic) {
 
-    /*** Topic Commands ***/
+        return [
+            {label: "Hide",   handler: do_hide,       context: "context menu"},
+            {label: "Relate", handler: do_relate,     context: "context menu"},
+            {is_separator: true,                      context: "context menu"},
+            {label: "Delete", handler: do_confirm,    context: "context menu"},
+            {label: "Edit",   handler: edit_document, context: "detail panel show", ui_icon: "pencil"},
+            {label: "Save",   handler: do_save,       context: "detail panel edit", ui_icon: "circle-check",
+                                                                                    is_submit: true},
+            {label: "Cancel", handler: do_cancel,     context: "detail panel edit"}
+        ]
 
-    function do_hide_topic() {
-        hide_topic(selected_topic.id)
+        function do_hide() {
+            hide_topic(topic.id)
+        }
+
+        function do_relate(event) {
+            canvas.begin_relation(topic.id, event)
+        }
+
+        function do_confirm() {
+            $("#delete-topic-dialog").dialog("open")
+        }
+
+        function do_save() {
+            trigger_doctype_hook(topic, "process_form")
+        }
+
+        function do_cancel() {
+            trigger_hook("post_submit_form", topic)
+            render_topic()
+        }
     }
 
-    function do_relate(event) {
-        canvas.begin_relation(selected_topic.id, event)
-    }
+    this.add_relation_commands = function(relation) {
 
-    function do_confirm_delete_topic() {
-        $("#delete-topic-dialog").dialog("open")
-    }
+        return [
+            {label: "Hide",   handler: do_hide,    context: "context menu"},
+            {is_separator: true,                   context: "context menu"},
+            {label: "Delete", handler: do_confirm, context: "context menu"}
+        ]
 
-    function do_delete_topic() {
-        $("#delete-topic-dialog").dialog("close")
-        delete_topic(selected_topic)
-    }
+        function do_hide() {
+            // update model
+            hide_relation(relation.id)
+            // update view
+            canvas.refresh()
+        }
 
-    /*** Relation Commands ***/
-
-    function do_hide_relation() {
-        // update model
-        hide_relation(current_rel_id)
-        // update view
-        canvas.refresh()
-    }
-
-    function do_confirm_delete_relation() {
-        $("#delete-relation-dialog").dialog("open")
-    }
-
-    function do_delete_relation() {
-        $("#delete-relation-dialog").dialog("close")
-        // update model
-        delete_relation(current_rel_id)
-        // update view
-        canvas.refresh()
-        render_topic()
-    }
-
-    /*** Detail Panel Commands ***/
-
-    function do_save() {
-        trigger_doctype_hook(selected_topic, "process_form")
-    }
-
-    function do_cancel_editing() {
-        //
-        trigger_hook("post_submit_form", selected_topic)
-        //
-        render_topic()
+        function do_confirm() {
+            $("#delete-relation-dialog").dialog("open")
+        }
     }
 }

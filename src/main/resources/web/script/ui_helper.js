@@ -12,7 +12,7 @@ function UIHelper() {
      * Creates and returns a button.
      *
      * The button's DOM structure is as follows:
-     *      <button id="button_id">     - the top-level container (get the provided menu ID)
+     *      <button id="button_id">     - the top-level container (gets the provided menu ID)
      *          <span>                  - the button's icon (provided it has an icon)
      *          button_label            - the button's label (a text node)
      *
@@ -86,7 +86,7 @@ function UIHelper() {
 
     $(function() {
         // Close open menus when clicked elsewhere.
-        // Note: a neater way would be to let the menu close itself by let its button react on blur.
+        // Note: a neater approach would be to let the menu close itself by let its button react on blur.
         // This would work in Firefox but unfortunately Safari doesn't fire blur events for buttons.
         $("body").click(function() {
             if (LOG_GUI) log("Body clicked -- hide all menus")
@@ -100,7 +100,7 @@ function UIHelper() {
      * Creates and returns a menu.
      *
      * The menu's DOM structure is as follows:
-     *      <span id="menu_id">     - the top-level container (get the provided menu ID)
+     *      <span id="menu_id">     - the top-level container (gets the provided menu ID)
      *          <button>            - the menu-triggering button
      *              <span>          - the button's icon (a triangle)
      *              <span>          - the button's label
