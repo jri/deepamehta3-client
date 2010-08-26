@@ -519,6 +519,7 @@ function Canvas() {
     }
 
     function drop(e) {
+        // e.preventDefault();  // Useful for debugging when exception is thrown before false is returned.
         trigger_hook("process_drop", e.dataTransfer)
         return false
     }

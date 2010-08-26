@@ -1014,11 +1014,15 @@ function inspect(object) {
  * Returns true if the array contains the object.
  */
 function contains(array, object) {
+    if (!array) {
+        return false
+    }
     for (var i = 0; i < array.length; i++) {
         if (array[i] == object) {
             return true
         }
     }
+    return false
 }
 
 /**
