@@ -259,7 +259,9 @@ function submit_document() {
 
 
 /**
- * Builds a topic and stores it in the DB.
+ * Creates a topic in the DB.
+ *
+ * High-level utility method for plugin developers.
  *
  * @param   type_uri        The topic type URI, e.g. "de/deepamehta/core/topictype/Note".
  * @param   properties      Optional: topic properties (object, key: field ID, value: content).
@@ -271,9 +273,15 @@ function create_topic(type_uri, properties) {
         type_uri: type_uri,
         properties: properties || {}
     }
+    // FIXME: "create" hooks are not triggered
     return dmc.create_topic(topic)
 }
 
+/**
+ * Updates topic properties in the DB and triggers the "post_update_topic" hook.
+ *
+ * High-level utility method for plugin developers.
+ */
 function update_topic(topic, old_properties) {
     // update DB
     dmc.set_topic_properties(topic.id, topic.properties)
@@ -282,7 +290,9 @@ function update_topic(topic, old_properties) {
 }
 
 /**
- * Deletes a topic (including its relations) from the DB and from the GUI.
+ * Deletes a topic (including its relations) from the DB and the GUI, and triggers the "post_delete_topic" hook.
+ *
+ * High-level utility method for plugin developers.
  */
 function delete_topic(topic) {
     // update DB
@@ -295,6 +305,8 @@ function delete_topic(topic) {
 
 /**
  * Hides a topic (including its relations) from the GUI (canvas & detail panel).
+ *
+ * High-level utility method for plugin developers.
  */
 function hide_topic(topic_id, is_part_of_delete_operation) {
     // canvas
@@ -319,7 +331,9 @@ function hide_topic(topic_id, is_part_of_delete_operation) {
 
 
 /**
- * Builds a relation and stores it in the DB.
+ * Creates a relation in the DB.
+ *
+ * High-level utility method for plugin developers.
  *
  * @param   type_id             The relation type ID, e.g. "RELATION", "SEARCH_RESULT".
  * @param   properties          Optional: relation properties (object, key: field ID, value: content).
@@ -333,20 +347,30 @@ function create_relation(type_id, src_topic_id, dst_topic_id, properties) {
         dst_topic_id: dst_topic_id,
         properties: properties || {}
     }
+    // FIXME: "create" hooks are not triggered
     return dmc.create_relation(relation)
 }
 
 /**
  * Deletes a relation from the DB, and from the view (canvas).
- * Note: the canvas view and the detail panel are not refreshed.
+ * Note: the canvas and the detail panel are not refreshed.
+ *
+ * High-level utility method for plugin developers.
  */
 function delete_relation(rel_id) {
     // update DB
     dmc.delete_relation(rel_id)
     // update GUI
     hide_relation(rel_id)
+    // FIXME: "delete" hooks are not triggered
 }
 
+/**
+ * Hides a relation from the GUI (canvas).
+ * Note: the canvas is not refreshed.
+ *
+ * High-level utility method for plugin developers.
+ */
 function hide_relation(rel_id) {
     canvas.remove_relation(rel_id)
 }
@@ -1107,6 +1131,11 @@ function render_text(text) {
  */
 function basename(path) {
     path.match(/.*\/(.*)\..*/)
+    return RegExp.$1
+}
+
+function filename(path) {
+    path.match(/.*\/(.*)/)
     return RegExp.$1
 }
 

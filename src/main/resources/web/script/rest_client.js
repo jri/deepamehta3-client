@@ -6,13 +6,37 @@ function DeepaMehtaClient(core_service_uri) {
         return request("GET", "/topic/" + topic_id)
     }
 
+    /**
+     * Looks up a topic by exact property value.
+     * If no such topic exists <code>null</code> is returned.
+     * If more than one topic is found a runtime exception is thrown. FIXME: check this.
+     * <p>
+     * IMPORTANT: Looking up a topic this way requires the property to be indexed with indexing mode <code>KEY</code>.
+     *
+     * @return  the topic, or <code>null</code>.
+     */
+    this.get_topic_by_property = function(key, value) {
+        return request("GET", "/topic/by_property/" + encodeURIComponent(key) + "/" + encodeURIComponent(value))
+    }
+
     this.get_topics = function(type_uri) {
         return request("GET", "/topic/by_type/" + encodeURIComponent(type_uri))
     }
 
     /**
-     * @param   include_topic_types     Optional: topic type filter (array of topic type names).
-     * @param   exclude_rel_types       Optional: relation type filter (array of relation type names).
+     * @param   include_topic_types     Optional: the topic type filter (array of topic type URIs, e.g.
+     *                                  ["de/deepamehta/core/topictype/Note"]).
+     *                                  If not specified (undefined or empty) the filter is switched off.
+     *
+     * @param   include_rel_types       Optional: the include relation type filter (array of strings of the form
+     *                                  "<relTypeName>[;<direction>]", e.g. ["TOPICMAP_TOPIC;INCOMING"]).
+     *                                  If not specified (undefined or empty) the filter is switched off.
+     *
+     * @param   exclude_rel_types       Optional: the exclude relation type filter (array of strings of the form
+     *                                  "<relTypeName>[;<direction>]", e.g. ["SEARCH_RESULT;OUTGOING"]).
+     *                                  If not specified (undefined or empty) the filter is switched off.
+     *
+     * @return  array of topics, possibly empty.
      */
     this.get_related_topics = function(topic_id, include_topic_types, include_rel_types, exclude_rel_types) {
         var params = new RequestParameter()
@@ -158,7 +182,7 @@ function DeepaMehtaClient(core_service_uri) {
             },
             error: function(xhr, textStatus, ex) {
                 if (LOG_AJAX_REQUESTS) log("..... " + xhr.status + " " + xhr.statusText +
-                    "\n..... exception: " + JSON.stringify(exception))
+                    "\n..... exception: " + JSON.stringify(ex))
                 exception = ex
             },
             complete: function(xhr, textStatus) {
