@@ -19,7 +19,7 @@ var LOG_IMAGE_LOADING = false
 var LOG_AJAX_REQUESTS = false
 var LOG_GUI = false
 
-var dmc = new DeepaMehtaClient(CORE_SERVICE_URI)
+var dmc = new RESTClient(CORE_SERVICE_URI)
 var ui = new UIHelper()
 var render = new RenderHelper()
 

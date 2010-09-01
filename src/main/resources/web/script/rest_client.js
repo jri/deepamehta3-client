@@ -1,4 +1,4 @@
-function DeepaMehtaClient(core_service_uri) {
+function RESTClient(core_service_uri) {
 
     // --- Topics ---
 
@@ -67,14 +67,18 @@ function DeepaMehtaClient(core_service_uri) {
     // --- Relations ---
 
     /**
-     * Returns the relation between the two topics.
-     * If no such relation exists nothing is returned (undefined). FIXME: check this.
-     * If more than one relation matches, only the first one is returned.
+     * Returns the relation between two topics.
+     * If no such relation exists null is returned. FIXME: check this.
+     * If more than one relation exists, an exception is thrown. FIXME: check this.
+     *
+     * @param   type_id     Relation type filter (optional). Pass <code>null</code> to switch filter off.
+     * @param   isDirected  Direction filter (optional). Pass <code>true</code> if direction matters. In this case the
+     *                      relation is expected to be directed <i>from</i> source topic <i>to</i> destination topic.
      *
      * @return  The relation (a Relation object). FIXME: check this.
      */
-    this.get_relation = function(src_topic_id, dst_topic_id) {
-        var params = new RequestParameter({src: src_topic_id, dst: dst_topic_id})
+    this.get_relation = function(src_topic_id, dst_topic_id, type_id, is_directed) {
+        var params = new RequestParameter({src: src_topic_id, dst: dst_topic_id, type: type_id, directed: is_directed})
         return request("GET", "/relation" + params.to_query_string())
     }
 

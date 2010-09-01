@@ -2,7 +2,7 @@ package de.deepamehta.plugins.client.resources;
 
 import de.deepamehta.core.model.RelatedTopic;
 import de.deepamehta.core.model.Topic;
-import de.deepamehta.core.service.DeepaMehtaService;
+import de.deepamehta.core.service.CoreService;
 import de.deepamehta.core.service.Plugin;
 import de.deepamehta.core.util.JSONHelper;
 
@@ -39,7 +39,7 @@ public class ClientSearchResource {
 
     // ---------------------------------------------------------------------------------------------- Instance Variables
 
-    private DeepaMehtaService dms = Plugin.getService();
+    private CoreService dms = Plugin.getService();
 
     private Logger logger = Logger.getLogger(getClass().getName());
 
