@@ -20,7 +20,7 @@ function PlainDocument() {
         empty_detail_panel()
         render_fields()
         render_relations()
-        render_buttons(topic, "detail panel show")
+        render_buttons(topic, "detail-panel-show")
 
         function render_fields() {
             for (var i = 0, field; field = get_type(topic).fields[i]; i++) {
@@ -75,7 +75,7 @@ function PlainDocument() {
         empty_detail_panel()
         trigger_hook("pre_render_form", topic)
         render_fields()
-        render_buttons(topic, "detail panel edit")
+        render_buttons(topic, "detail-panel-edit")
 
         function render_fields() {
             for (var i = 0, field; field = get_type(topic).fields[i]; i++) {

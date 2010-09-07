@@ -460,26 +460,30 @@ function Canvas() {
         //
         close_context_menu()
         //
-        var ct = topic_by_position(event)
-        if (ct) {
-            //
+        var ct, ca
+        if (ct = topic_by_position(event)) {
             select_topic(ct.id, true)
-            //
-            var commands = get_topic_commands(ct, "context menu")
-            open_context_menu(commands, event)
+            var commands = get_topic_commands(ct, "context-menu")
+        } else if (ca = assoc_by_position(event)) {
+            current_rel_id = ca.id
+            draw()
+            var commands = get_relation_commands(ca, "context-menu")
         } else {
-            var ca = assoc_by_position(event)
-            if (ca) {
-                current_rel_id = ca.id
-                draw()
-                var commands = get_relation_commands(ca, "context menu")
-                open_context_menu(commands, event)
-            }
+            var commands = get_canvas_commands("context-menu")
         }
+        //
+        open_context_menu(commands, event)
+        //
         return false
     }
 
+    /**
+     * @param   commands    Array of commands. May be empty. Must not be null/undefined.
+     */
     function open_context_menu(commands, event) {
+        if (!commands.length) {
+            return
+        }
         var contextmenu = $("<div>").addClass("contextmenu").css({
             position: "absolute",
             top:  event.layerY + "px",

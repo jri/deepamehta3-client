@@ -25,7 +25,7 @@ var render = new RenderHelper()
 
 var selected_topic      // topic being displayed, or null if no one is currently displayed (a Topic object)
 var current_rel_id      // ID of relation being activated, or null if no one is currently activated
-var canvas              // the canvas that displays the topic map (a Canvas object)
+var canvas              // the canvas that displays the topicmap (a Canvas object)
 //
 var plugin_sources = []
 var plugins = {}            // key: plugin class, value: plugin instance
@@ -159,7 +159,7 @@ function special_selected(menu_item) {
  * Reveals a topic and optionally relates the selected topic to it.
  *
  * @param   do_relate   Optional (boolean): if evaluates to true a relation of type "SEARCH_RESULT"
- *                      is created between the selected topic and the revealed topic.
+ *                      is created between the selected topic and the revealed topic. FIXME: still required?
  */
 function reveal_topic(topic_id, do_relate) {
     // error check
@@ -168,6 +168,7 @@ function reveal_topic(topic_id, do_relate) {
         return
     }
     // create relation
+    // FIXME: still required?
     if (do_relate) {
         var relation = dmc.get_relation(selected_topic.id, topic_id)
         if (!relation) {
@@ -713,6 +714,10 @@ function get_topic_commands(topic, context) {
 
 function get_relation_commands(relation, context) {
     return get_commands(trigger_hook("add_relation_commands", relation), context)
+}
+
+function get_canvas_commands(context) {
+    return get_commands(trigger_hook("add_canvas_commands"), context)
 }
 
 function get_commands(cmd_lists, context) {

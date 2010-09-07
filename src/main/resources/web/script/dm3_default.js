@@ -4,7 +4,7 @@ function dm3_default () {
 
     this.init = function() {
 
-        ui.dialog("delete-topic-dialog", "Delete Topic?", "Delete", do_delete_topic)
+        ui.dialog("delete-topic-dialog",    "Delete Topic?",    "Delete", do_delete_topic)
         ui.dialog("delete-relation-dialog", "Delete Relation?", "Delete", do_delete_relation)
 
         function do_delete_topic() {
@@ -25,14 +25,14 @@ function dm3_default () {
     this.add_topic_commands = function(topic) {
 
         return [
-            {label: "Hide",   handler: do_hide,       context: "context menu"},
-            {label: "Relate", handler: do_relate,     context: "context menu"},
-            {is_separator: true,                      context: "context menu"},
-            {label: "Delete", handler: do_confirm,    context: "context menu"},
-            {label: "Edit",   handler: edit_document, context: "detail panel show", ui_icon: "pencil"},
-            {label: "Save",   handler: do_save,       context: "detail panel edit", ui_icon: "circle-check",
+            {label: "Hide",   handler: do_hide,       context: "context-menu"},
+            {label: "Relate", handler: do_relate,     context: "context-menu"},
+            {is_separator: true,                      context: "context-menu"},
+            {label: "Delete", handler: do_confirm,    context: "context-menu"},
+            {label: "Edit",   handler: edit_document, context: "detail-panel-show", ui_icon: "pencil"},
+            {label: "Save",   handler: do_save,       context: "detail-panel-edit", ui_icon: "circle-check",
                                                                                     is_submit: true},
-            {label: "Cancel", handler: do_cancel,     context: "detail panel edit"}
+            {label: "Cancel", handler: do_cancel,     context: "detail-panel-edit"}
         ]
 
         function do_hide() {
@@ -60,9 +60,9 @@ function dm3_default () {
     this.add_relation_commands = function(relation) {
 
         return [
-            {label: "Hide",   handler: do_hide,    context: "context menu"},
-            {is_separator: true,                   context: "context menu"},
-            {label: "Delete", handler: do_confirm, context: "context menu"}
+            {label: "Hide",   handler: do_hide,    context: "context-menu"},
+            {is_separator: true,                   context: "context-menu"},
+            {label: "Delete", handler: do_confirm, context: "context-menu"}
         ]
 
         function do_hide() {
