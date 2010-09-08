@@ -116,7 +116,7 @@ function Canvas() {
      *
      * @param   refresh_canvas  Optional - if true, the canvas is refreshed.
      */
-    this.remove_relation = function(id, refresh_canvas) {
+    this.remove_relation = function(id, refresh_canvas, is_part_of_delete_operation) {
         var i = assoc_index(id)
         // Note: it is not an error if the relation is not present on the canvas. This can happen
         // for prgrammatically deleted relations, e.g. when updating a data field of type "reference".
@@ -136,13 +136,15 @@ function Canvas() {
             this.refresh()
         }
         // trigger hook
-        trigger_hook("post_remove_relation_from_canvas", ca)
+        if (!is_part_of_delete_operation) {
+            trigger_hook("post_hide_relation_from_canvas", ca)
+        }
     }
 
-    this.remove_all_relations_of_topic = function(topic_id) {
+    this.remove_all_relations_of_topic = function(topic_id, is_part_of_delete_operation) {
         var assoc_ids = assoc_ids_of_topic(topic_id)
         for (var i = 0; i < assoc_ids.length; i++) {
-            this.remove_relation(assoc_ids[i])
+            this.remove_relation(assoc_ids[i], false, is_part_of_delete_operation)
         }
     }
 

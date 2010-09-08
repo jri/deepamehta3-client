@@ -301,7 +301,7 @@ function delete_topic(topic) {
     // trigger hook
     trigger_hook("post_delete_topic", topic)
     // update GUI
-    hide_topic(topic.id, true)
+    hide_topic(topic.id, true)      // is_part_of_delete_operation=true
 }
 
 /**
@@ -311,7 +311,7 @@ function delete_topic(topic) {
  */
 function hide_topic(topic_id, is_part_of_delete_operation) {
     // canvas
-    canvas.remove_all_relations_of_topic(topic_id)
+    canvas.remove_all_relations_of_topic(topic_id, is_part_of_delete_operation)
     canvas.remove_topic(topic_id, true, is_part_of_delete_operation)    // refresh=true
     // detail panel
     if (topic_id == selected_topic.id) {
@@ -361,9 +361,10 @@ function create_relation(type_id, src_topic_id, dst_topic_id, properties) {
 function delete_relation(rel_id) {
     // update DB
     dmc.delete_relation(rel_id)
+    // trigger hook
+    trigger_hook("post_delete_relation", rel_id)
     // update GUI
-    hide_relation(rel_id)
-    // FIXME: "delete" hooks are not triggered
+    hide_relation(rel_id, true)     // is_part_of_delete_operation=true
 }
 
 /**
@@ -372,8 +373,8 @@ function delete_relation(rel_id) {
  *
  * High-level utility method for plugin developers.
  */
-function hide_relation(rel_id) {
-    canvas.remove_relation(rel_id)
+function hide_relation(rel_id, is_part_of_delete_operation) {
+    canvas.remove_relation(rel_id, false, is_part_of_delete_operation)
 }
 
 
