@@ -1,14 +1,8 @@
 function dm3_fulltext() {
 
-    css_stylesheet("style/search_result.css")
+    dm3c.css_stylesheet("style/search_result.css")
 
-
-
-    /**************************************************************************************************/
-    /**************************************** Overriding Hooks ****************************************/
-    /**************************************************************************************************/
-
-
+    // ------------------------------------------------------------------------------------------------ Overriding Hooks
 
     /*** Provide "By Text" search mode ***/
 
@@ -18,14 +12,14 @@ function dm3_fulltext() {
 
     this.search_widget = function(searchmode) {
         if (searchmode == "By Text") {
-            return $("<input>").attr({id: "search_field", type: "text", size: SEARCH_FIELD_WIDTH})
+            return $("<input>").attr({id: "search_field", type: "text", size: dm3c.SEARCH_FIELD_WIDTH})
         }
     }
 
     this.search = function(searchmode) {
         if (searchmode == "By Text") {
             var searchterm = $.trim($("#search_field").val())
-            return dmc.search_topics_and_create_bucket(searchterm)
+            return dm3c.restc.search_topics_and_create_bucket(searchterm)
         }
     }
 }

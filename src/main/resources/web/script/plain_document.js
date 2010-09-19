@@ -17,13 +17,13 @@ function PlainDocument() {
         field_renderers = {}            // key: field URI, value: renderer object
         var defined_relation_topics = []
 
-        empty_detail_panel()
+        dm3c.empty_detail_panel()
         render_fields()
         render_relations()
         render_buttons(topic, "detail-panel-show")
 
         function render_fields() {
-            for (var i = 0, field; field = get_type(topic).fields[i]; i++) {
+            for (var i = 0, field; field = dm3c.type_cache.get_type(topic.type_uri).fields[i]; i++) {
                 // create renderer
                 if (!field.js_renderer_class) {
                     alert("WARNING (PlainDocument.render_document):\n\nField \"" + field.label +
@@ -31,7 +31,7 @@ function PlainDocument() {
                     continue
                 }
                 var rel_topics = related_topics(field)
-                field_renderers[field.uri] = new_object(field.js_renderer_class, topic, field, rel_topics)
+                field_renderers[field.uri] = js.new_object(field.js_renderer_class, topic, field, rel_topics)
                 // render field
                 var field_value_div = $("<div>").addClass("field-value")
                 var html = trigger_renderer_hook(field, "render_field", field_value_div)
@@ -53,15 +53,15 @@ function PlainDocument() {
         }
 
         function render_relations() {
-            var topics = dmc.get_related_topics(topic.id, [], [], ["SEARCH_RESULT;OUTGOING"])
+            var topics = dm3c.restc.get_related_topics(topic.id, [], [], ["SEARCH_RESULT;OUTGOING"])
             // don't render topics already rendered via "defined relations"
-            substract(topics, defined_relation_topics, function(topic, drt) {
+            js.substract(topics, defined_relation_topics, function(topic, drt) {
                 return topic.id == drt.id
             })
             //
-            render.field_label("Relations (" + topics.length + ")")
+            dm3c.render.field_label("Relations (" + topics.length + ")")
             var field_value = $("<div>").addClass("field-value")
-            field_value.append(render_topic_list(topics))
+            field_value.append(dm3c.render_topic_list(topics))
             $("#detail-panel").append(field_value)
         }
     }
@@ -72,13 +72,13 @@ function PlainDocument() {
         this.topic_buffer = {}
         plain_doc = this
 
-        empty_detail_panel()
-        trigger_hook("pre_render_form", topic)
+        dm3c.empty_detail_panel()
+        dm3c.trigger_hook("pre_render_form", topic)
         render_fields()
         render_buttons(topic, "detail-panel-edit")
 
         function render_fields() {
-            for (var i = 0, field; field = get_type(topic).fields[i]; i++) {
+            for (var i = 0, field; field = dm3c.type_cache.get_type(topic.type_uri).fields[i]; i++) {
                 if (!field.editable) {
                     continue
                 }
@@ -89,9 +89,9 @@ function PlainDocument() {
                     continue
                 }
                 var rel_topics = related_topics(field)
-                field_renderers[field.uri] = new_object(field.js_renderer_class, topic, field, rel_topics)
+                field_renderers[field.uri] = js.new_object(field.js_renderer_class, topic, field, rel_topics)
                 // render field label
-                render.field_label(field)
+                dm3c.render.field_label(field)
                 // render form element
                 var html = trigger_renderer_hook(field, "render_form_element")
                 if (html !== undefined) {
@@ -117,13 +117,13 @@ function PlainDocument() {
 
     this.process_form = function() {
         //
-        trigger_hook("pre_submit_form", selected_topic)
+        dm3c.trigger_hook("pre_submit_form", dm3c.selected_topic)
         //
         // 1) update memory
         // remember old property values
-        var old_properties = clone(selected_topic.properties)
+        var old_properties = js.clone(dm3c.selected_topic.properties)
         // read out values from GUI elements and update the topic
-        for (var i = 0, field; field = get_type(selected_topic).fields[i]; i++) {
+        for (var i = 0, field; field = dm3c.type_cache.get_type(dm3c.selected_topic.type_uri).fields[i]; i++) {
             if (!field.editable) {
                 continue
             }
@@ -133,29 +133,29 @@ function PlainDocument() {
             // null is a valid result (means: field renderer prevents the field from being updated).
             if (value !== undefined) {
                 if (value != null) {
-                    selected_topic.properties[field.uri] = value
+                    dm3c.selected_topic.properties[field.uri] = value
                 }
             } else {
                 alert("WARNING (PlainDocument.do_save):\n\nRenderer for field \"" + field.label + "\" returned " +
-                    "no form value.\n\ntopic ID=" + selected_topic.id + "\nfield=" + JSON.stringify(field))
+                    "no form value.\n\ntopic ID=" + dm3c.selected_topic.id + "\nfield=" + JSON.stringify(field))
             }
         }
         // 2) update DB
-        update_topic(selected_topic, old_properties)
+        dm3c.update_topic(dm3c.selected_topic, old_properties)
         //
-        trigger_hook("post_submit_form", selected_topic)
+        dm3c.trigger_hook("post_submit_form", dm3c.selected_topic)
         //
         // 3) update GUI
-        var topic_id = selected_topic.id
-        var label = topic_label(selected_topic)
-        canvas.set_topic_label(topic_id, label)
-        canvas.refresh()
-        render_topic()
+        var topic_id = dm3c.selected_topic.id
+        var label = dm3c.topic_label(dm3c.selected_topic)
+        dm3c.canvas.set_topic_label(topic_id, label)
+        dm3c.canvas.refresh()
+        dm3c.render_topic()
         // trigger hook
-        trigger_hook("post_set_topic_label", topic_id, label)
+        dm3c.trigger_hook("post_set_topic_label", topic_id, label)
     }
 
-    // ------------------------------------------------------------------------------------------------- Private Methods
+    // ----------------------------------------------------------------------------------------------- Private Functions
 
 
 
@@ -166,9 +166,9 @@ function PlainDocument() {
 
 
     function render_buttons(topic, context) {
-        var commands = get_topic_commands(topic, context)
+        var commands = dm3c.get_topic_commands(topic, context)
         for (var i = 0, cmd; cmd = commands[i]; i++) {
-            var button = ui.button(undefined, cmd.handler, cmd.label, cmd.ui_icon, cmd.is_submit)
+            var button = dm3c.ui.button(undefined, cmd.handler, cmd.label, cmd.ui_icon, cmd.is_submit)
             $("#lower-toolbar").append(button)
         }
     }
@@ -179,7 +179,7 @@ function PlainDocument() {
      * @return  Array of Topic objects.
      */
     function get_relation_field_content(topic_id, field) {
-        return dmc.get_related_topics(topic_id, [field.ref_topic_type_uri], [], ["SEARCH_RESULT"])
+        return dm3c.restc.get_related_topics(topic_id, [field.ref_topic_type_uri], [], ["SEARCH_RESULT"])
     }
 
     // --- Field Renderer ---
@@ -215,13 +215,13 @@ function PlainDocument() {
      * Auto-Completion main function. Triggered for every keystroke.
      */
     this.autocomplete = function(event) {
-        // log("autocomplete: which=" + event.which)
+        // dm3c.log("autocomplete: which=" + event.which)
         if (handle_special_input(event)) {
             return
         }
         // assertion
         if (this.id.substr(0, 6) != "field_") {
-            alert("WARNING (PlainDocument.autocomplete):\n\nTopic " + selected_topic.id +
+            alert("WARNING (PlainDocument.autocomplete):\n\nTopic " + dm3c.selected_topic.id +
                 " has unexpected element id: \"" + this.id + "\".\n\nIt is expected to begin with \"field_\".")
             return
         }
@@ -236,7 +236,7 @@ function PlainDocument() {
             if (searchterm) {
                 // --- trigger search for each fulltext index ---
                 for (var i = 0, index; index = field.autocomplete_indexes[i]; i++) {
-                    var result = dmc.search_topics(index, searchterm + "*")
+                    var result = dm3c.restc.search_topics(index, searchterm + "*")
                     //
                     if (result.rows.length && !autocomplete_items.length) {
                         show_autocomplete_list(this)
@@ -253,7 +253,7 @@ function PlainDocument() {
                         // --- Add item to model ---
                         autocomplete_items.push(item)
                         // --- Add item to view ---
-                        var ac_item = trigger_doctype_hook(selected_topic, "render_autocomplete_item", item)
+                        var ac_item = dm3c.trigger_doctype_hook(dm3c.selected_topic, "render_autocomplete_item", item)
                         var a = $("<a>").attr({href: "", id: item_id++}).append(ac_item)
                         a.mousemove(item_hovered)
                         a.mousedown(process_selection)
@@ -277,7 +277,7 @@ function PlainDocument() {
         function searchterm(field, input_element) {
             if (field.autocomplete_style == "item list") {
                 var searchterm = current_term(input_element)
-                // log("pos=" + searchterm[1] + "cpos=" + searchterm[2] + " searchterm=\"" + searchterm[0] + "\"")
+                // dm3c.log("pos=" + searchterm[1] + "cpos=" + searchterm[2] + " searchterm=\"" + searchterm[0] + "\"")
                 return $.trim(searchterm[0])
             } else {
                 // autocomplete_style "default"
@@ -287,7 +287,7 @@ function PlainDocument() {
     }
 
     function handle_special_input(event) {
-        // log("handle_special_input: event.which=" + event.which)
+        // dm3c.log("handle_special_input: event.which=" + event.which)
         if (event.which == 13) {            // return
             process_selection()
             return true
@@ -299,7 +299,7 @@ function PlainDocument() {
             if (autocomplete_item == -2) {
                 autocomplete_item = autocomplete_items.length -1
             }
-            // log("handle_special_input: cursor up, autocomplete_item=" + autocomplete_item)
+            // dm3c.log("handle_special_input: cursor up, autocomplete_item=" + autocomplete_item)
             activate_list_item()
             return true
         } else if (event.which == 40) {     // cursor down
@@ -307,7 +307,7 @@ function PlainDocument() {
             if (autocomplete_item == autocomplete_items.length) {
                 autocomplete_item = -1
             }
-            // log("handle_special_input: cursor down, autocomplete_item=" + autocomplete_item)
+            // dm3c.log("handle_special_input: cursor down, autocomplete_item=" + autocomplete_item)
             activate_list_item()
             return true
         }
@@ -317,7 +317,7 @@ function PlainDocument() {
         if (autocomplete_item != -1) {
             var input_element = get_input_element()
             // trigger hook to get the item (string) to insert into the input element
-            var item = trigger_doctype_hook(selected_topic, "process_autocomplete_selection",
+            var item = dm3c.trigger_doctype_hook(dm3c.selected_topic, "process_autocomplete_selection",
                 autocomplete_items[autocomplete_item])
             //
             var field = get_field(input_element)
@@ -355,7 +355,7 @@ function PlainDocument() {
 
     function get_field(input_element) {
         var field_uri = input_element.id.substr(6)            // 6 = "field_".length
-        var field = get_data_field(get_type(selected_topic), field_uri)
+        var field = dm3c.type_cache.get_data_field(dm3c.type_cache.get_type(dm3c.selected_topic.type_uri), field_uri)
         return field
     }
 

@@ -64,7 +64,7 @@ function Canvas() {
             var ct = new CanvasTopic(id, type, label, x, y)
             canvas_topics.push(ct)
             // trigger hook
-            trigger_hook("post_add_topic_to_canvas", ct)
+            dm3c.trigger_hook("post_add_topic_to_canvas", ct)
         }
         // highlight topic
         if (highlight_topic) {
@@ -82,7 +82,7 @@ function Canvas() {
             var ca = new CanvasAssoc(id, doc1_id, doc2_id)
             canvas_assocs.push(ca)
             // trigger hook
-            trigger_hook("post_add_relation_to_canvas", ca)
+            dm3c.trigger_hook("post_add_relation_to_canvas", ca)
         }
         // update GUI
         if (refresh_canvas) {
@@ -106,7 +106,7 @@ function Canvas() {
         }
         // trigger hook
         if (!is_part_of_delete_operation) {
-            trigger_hook("post_hide_topic_from_canvas", ct)
+            dm3c.trigger_hook("post_hide_topic_from_canvas", ct)
         }
     }
 
@@ -128,8 +128,8 @@ function Canvas() {
         var ca = canvas_assocs[i]
         canvas_assocs.splice(i, 1)
         //
-        if (current_rel_id == id) {
-            current_rel_id = null
+        if (dm3c.current_rel_id == id) {
+            dm3c.current_rel_id = null
         }
         // update GUI
         if (refresh_canvas) {
@@ -137,7 +137,7 @@ function Canvas() {
         }
         // trigger hook
         if (!is_part_of_delete_operation) {
-            trigger_hook("post_hide_relation_from_canvas", ca)
+            dm3c.trigger_hook("post_hide_relation_from_canvas", ca)
         }
     }
 
@@ -233,7 +233,7 @@ function Canvas() {
                                           w + 2 * HIGHLIGHT_DIST, h + 2 * HIGHLIGHT_DIST)
                 }
             } catch (e) {
-                log("### ERROR at Canvas.draw_topics:\nicon.src=" + ct.icon.src + "\nicon.width=" + ct.icon.width +
+                dm3c.log("### ERROR at Canvas.draw_topics:\nicon.src=" + ct.icon.src + "\nicon.width=" + ct.icon.width +
                     "\nicon.height=" + ct.icon.height  + "\nicon.complete=" + ct.icon.complete
                     /* + "\n" + JSON.stringify(e) */)
             }
@@ -248,12 +248,12 @@ function Canvas() {
             // assertion
             if (!ct1 || !ct2) {
                 // TODO: deleted relations must be removed from all topicmaps.
-                log("### ERROR in draw_relations: relation " + ca.id + " is missing a topic")
+                dm3c.log("### ERROR in draw_relations: relation " + ca.id + " is missing a topic")
                 delete canvas_assocs[i]
                 continue
             }
             // hightlight
-            if (current_rel_id == ca.id) {
+            if (dm3c.current_rel_id == ca.id) {
                 draw_line(ct1.x, ct1.y, ct2.x, ct2.y, ACTIVE_ASSOC_WIDTH, ACTIVE_COLOR)
             }
             //
@@ -281,7 +281,7 @@ function Canvas() {
     /*** Mouse Events ***/
 
     function mousedown(event) {
-        if (LOG_GUI) log("Mouse down!")
+        if (dm3c.LOG_GUI) dm3c.log("Mouse down!")
         //
         if (event.which == 1) {
             tmp_x = cx(event)
@@ -320,7 +320,7 @@ function Canvas() {
     }
 
     function mouseleave(event) {
-        if (LOG_GUI) log("Mouse leave!")
+        if (dm3c.LOG_GUI) dm3c.log("Mouse leave!")
         //
         if (relation_in_progress) {
             end_relation_in_progress()
@@ -334,7 +334,7 @@ function Canvas() {
     }
 
     function mouseup(event) {
-        if (LOG_GUI) log("Mouse up!")
+        if (dm3c.LOG_GUI) dm3c.log("Mouse up!")
         //
         close_context_menu()
         //
@@ -343,9 +343,9 @@ function Canvas() {
             //
             var ct = topic_by_position(event)
             if (ct) {
-                var rel = create_relation("RELATION", selected_topic.id, ct.id)
-                canvas.add_relation(rel.id, rel.src_topic_id, rel.dst_topic_id)
-                select_topic(selected_topic.id)
+                var rel = dm3c.create_relation("RELATION", dm3c.selected_topic.id, ct.id)
+                dm3c.canvas.add_relation(rel.id, rel.src_topic_id, rel.dst_topic_id)
+                select_topic(dm3c.selected_topic.id)
             } else {
                 draw()
             }
@@ -365,13 +365,13 @@ function Canvas() {
     function dblclick(event) {
         var ct = topic_by_position(event)
         if (ct) {
-            trigger_hook("topic_doubleclicked", ct)
+            dm3c.trigger_hook("topic_doubleclicked", ct)
         }
     }
 
     function resize(event, ui_event) {
-        if (LOG_GUI) log("Canvas resized: original with=" + ui_event.originalSize.width +
-                                         " current with=" + ui_event.size.width)
+        if (dm3c.LOG_GUI) dm3c.log("Canvas resized: original with=" + ui_event.originalSize.width +
+                                                   " current with=" + ui_event.size.width)
         // resize canvas
         rebuild_canvas({width: ui_event.size.width, height: canvas_height})
         // resize detail panel
@@ -420,7 +420,7 @@ function Canvas() {
             // gradient
             var g1 = (y - ct1.y) / (x - ct1.x)
             var g2 = (y - ct2.y) / (x - ct2.x)
-            // log(g1 + " " + g2 + " -> " + Math.abs(g1 - g2))
+            // dm3c.log(g1 + " " + g2 + " -> " + Math.abs(g1 - g2))
             //
             if (Math.abs(g1 - g2) < ASSOC_CLICK_TOLERANCE) {
                 return ca
@@ -434,7 +434,7 @@ function Canvas() {
     function end_topic_move() {
         topic_move_in_progress = false
         // trigger hook
-        trigger_hook("post_move_topic_on_canvas", action_topic)
+        dm3c.trigger_hook("post_move_topic_on_canvas", action_topic)
     }
 
     function end_canvas_move() {
@@ -449,8 +449,8 @@ function Canvas() {
         // remove topic activation
         action_topic = null
         // remove assoc activation
-        if (current_rel_id) {
-            current_rel_id = null
+        if (dm3c.current_rel_id) {
+            dm3c.current_rel_id = null
             draw()
         }
     }
@@ -458,20 +458,20 @@ function Canvas() {
     /*** Context Menu Events ***/
 
     function contextmenu(event) {
-        if (LOG_GUI) log("Contextmenu!")
+        if (dm3c.LOG_GUI) dm3c.log("Contextmenu!")
         //
         close_context_menu()
         //
         var ct, ca
         if (ct = topic_by_position(event)) {
             select_topic(ct.id, true)
-            var commands = get_topic_commands(ct, "context-menu")
+            var commands = dm3c.get_topic_commands(ct, "context-menu")
         } else if (ca = assoc_by_position(event)) {
-            current_rel_id = ca.id
+            dm3c.current_rel_id = ca.id
             draw()
-            var commands = get_relation_commands(ca, "context-menu")
+            var commands = dm3c.get_relation_commands(ca, "context-menu")
         } else {
-            var commands = get_canvas_commands("context-menu")
+            var commands = dm3c.get_canvas_commands("context-menu")
         }
         //
         open_context_menu(commands, event)
@@ -505,7 +505,7 @@ function Canvas() {
         function context_menu_handler(handler) {
             return function(event) {
                 handler(event)
-                canvas.close_context_menu()
+                dm3c.canvas.close_context_menu()
                 return false
             }
         }
@@ -526,7 +526,7 @@ function Canvas() {
 
     function drop(e) {
         // e.preventDefault();  // Useful for debugging when exception is thrown before false is returned.
-        trigger_hook("process_drop", e.dataTransfer)
+        dm3c.trigger_hook("process_drop", e.dataTransfer)
         return false
     }
 
@@ -552,9 +552,9 @@ function Canvas() {
         set_highlight_topic(doc_id)
         draw()
         if (synchronous) {
-            render_topic(doc_id)
+            dm3c.render_topic(doc_id)
         } else {
-            setTimeout(render_topic, 0, doc_id)
+            setTimeout(dm3c.render_topic, 0, doc_id)
         }
     }
 
@@ -644,15 +644,15 @@ function Canvas() {
             canvas_width = w_w - detail_panel_width - 50    // 35px = 1.2em + 2 * 8px = 19(.2)px + 16px.
                                             // Update: Safari 4 needs 15 extra pixel (for potential vertical scrollbar?)
             canvas_height = w_h - t_h - 76  // was 60, then 67 (healing login dialog), then 76 (healing datepicker)
-            if (LOG_GUI) {
-                log("Calculating canvas size: window size=" + w_w + "x" + w_h + " toolbar height=" + t_h)
-                log("..... new canvas size=" + canvas_width + "x" + canvas_height)
+            if (dm3c.LOG_GUI) {
+                dm3c.log("Calculating canvas size: window size=" + w_w + "x" + w_h + " toolbar height=" + t_h)
+                dm3c.log("..... new canvas size=" + canvas_width + "x" + canvas_height)
             }
         }
     }
 
     function rebuild_canvas(size) {
-        if (LOG_GUI) log("Rebuilding canvas")
+        if (dm3c.LOG_GUI) dm3c.log("Rebuilding canvas")
         // Note: we don't empty the entire canvas-panel to keep the resizable-handle element.
         $("#canvas-panel #canvas").remove()
         $("#canvas-panel .canvas-topic-label").remove()
@@ -723,7 +723,7 @@ function Canvas() {
 
     function CanvasTopic(id, type, label, x, y) {
 
-        var icon = get_type_icon(type)
+        var icon = dm3c.get_type_icon(type)
         var w = icon.width
         var h = icon.height
 

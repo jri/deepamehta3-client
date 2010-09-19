@@ -18,16 +18,16 @@ function HTMLFieldRenderer(doc, field, rel_topics) {
 
     this.render_field = function() {
         // render field label
-        render.field_label(field)
+        dm3c.render.field_label(field)
         // render field value
-        return get_value(doc, field.uri)
+        return dm3c.get_value(doc, field.uri)
     }
 
     this.render_form_element = function() {
         var lines = field.lines || DEFAULT_AREA_HEIGHT
         var textarea = $("<textarea>")
         textarea.attr({id: "field_" + field.uri, rows: lines, cols: DEFAULT_FIELD_WIDTH})
-        textarea.text(get_value(doc, field.uri))
+        textarea.text(dm3c.get_value(doc, field.uri))
         return textarea
     }
 

@@ -5,6 +5,6 @@ function BodyTextRenderer(doc, field, rel_topics) {
 
     this.render_field = function(field_value_div) {
         // render field value
-        return get_value(doc, field.uri)
+        return dm3c.get_value(doc, field.uri)
     }
 }

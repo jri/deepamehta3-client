@@ -2,13 +2,13 @@ function NumberFieldRenderer(doc, field, rel_topics) {
 
     this.render_field = function() {
         // field label
-        render.field_label(field)
+        dm3c.render.field_label(field)
         // field value
-        return get_value(doc, field.uri)
+        return dm3c.get_value(doc, field.uri)
     }
 
     this.render_form_element = function() {
-        return render.input(doc, field)
+        return dm3c.render.input(doc, field)
     }
 
     this.read_form_value = function() {

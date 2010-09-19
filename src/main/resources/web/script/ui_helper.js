@@ -89,7 +89,7 @@ function UIHelper() {
         // Note: a neater approach would be to let the menu close itself by let its button react on blur.
         // This would work in Firefox but unfortunately Safari doesn't fire blur events for buttons.
         $("body").click(function() {
-            if (LOG_GUI) log("Body clicked -- hide all menus")
+            if (dm3c.LOG_GUI) dm3c.log("Body clicked -- hide all menus")
             hide_all_menus()
         })
     })
@@ -230,7 +230,7 @@ function UIHelper() {
                 var item_id = items.length - 1
                 var anchor = $("<a>").attr({href: "#", id: anchor_id(item_id)}).click(item_selected)
                 if (item.icon) {
-                    anchor.append(image_tag(item.icon, "menu-icon"))
+                    anchor.append(dm3c.image_tag(item.icon, "menu-icon"))
                 }
                 anchor.append(item.label)
                 menu.append(anchor)
@@ -312,7 +312,7 @@ function UIHelper() {
             }
 
             function button_clicked() {
-                if (LOG_GUI) log("Button of menu \"" + menu_id + "\" clicked")
+                if (dm3c.LOG_GUI) dm3c.log("Button of menu \"" + menu_id + "\" clicked")
                 if (menu.css("display") == "none") {
                     hide_all_menus()
                     show_menu()
