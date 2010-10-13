@@ -615,10 +615,6 @@ function Canvas() {
      */
     function create_canvas_element(size) {
         var canvas = document.createElement("canvas")
-        // initialize ExplorerCanvas
-        if (typeof(G_vmlCanvasManager) != "undefined") {
-            canvas = G_vmlCanvasManager.initElement(canvas)
-        }
         // calculate size
         if (size) {
             canvas_width = size.width
