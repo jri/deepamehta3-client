@@ -1,5 +1,7 @@
 function Canvas() {
 
+    // ------------------------------------------------------------------------------------------------ Constructor Code
+
     // Settings
     var ACTIVE_COLOR = "red"
     var ACTIVE_TOPIC_WIDTH = 3
@@ -182,8 +184,8 @@ function Canvas() {
         init_model()
     }
 
-    this.rebuild = function(size) {
-        rebuild_canvas(size)
+    this.resize = function() {
+        resize_canvas()
     }
 
     /*** Grid Positioning ***/
@@ -369,11 +371,14 @@ function Canvas() {
         }
     }
 
+    /**
+     * Triggered when the user resizes the canvas (by moving the split pane's resizable-handle).
+     */
     function resize(event, ui_event) {
         if (dm3c.LOG_GUI) dm3c.log("Canvas resized: original with=" + ui_event.originalSize.width +
                                                    " current with=" + ui_event.size.width)
         // resize canvas
-        rebuild_canvas({width: ui_event.size.width, height: canvas_height})
+        resize_canvas({width: ui_event.size.width, height: canvas_height})
         // resize detail panel
         calculate_detail_panel_size()
         $("#detail-panel").width(detail_panel_width)
@@ -610,8 +615,8 @@ function Canvas() {
      * Creates the HTML5 canvas element, binds the event handlers, and adds it to the document.
      *
      * Called in 2 situations:
-     * 1) When the main GUI is build initially
-     * 2) When the canvas is rebuild (as a result of resizing)
+     * 1) When the main GUI is build initially.
+     * 2) When the canvas is resized interactively.
      */
     function create_canvas_element(size) {
         var canvas = document.createElement("canvas")
@@ -647,11 +652,23 @@ function Canvas() {
         }
     }
 
-    function rebuild_canvas(size) {
+    /**
+     * Resizes the HTML5 canvas element.
+     *
+     * Called in 2 situations:
+     * 1) The user resizes the main window (in this case the "size" parameter is not given).
+     * 2) The user resizes the canvas (by moving the split pane's resizable-handle).
+     *
+     * @param   size    Optional: the new canvas size.
+     *                  If not given the size is calculated based on window size and detail panel size.
+     */
+    function resize_canvas(size) {
         if (dm3c.LOG_GUI) dm3c.log("Rebuilding canvas")
         // Note: we don't empty the entire canvas-panel to keep the resizable-handle element.
         $("#canvas-panel #canvas").remove()
         $("#canvas-panel .canvas-topic-label").remove()
+        // Note: in order to resize the canvas element we must recreate it.
+        // Otherwise the browsers would just distort the canvas rendering.
         create_canvas_element(size)
         ctx.translate(trans_x, trans_y)
         draw()

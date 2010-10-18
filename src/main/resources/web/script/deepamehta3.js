@@ -210,6 +210,10 @@ var dm3c = new function() {
         css_stylesheets.push(css_path)
     }
 
+    this.javascript_source = function(source_path) {
+        $("head").append($("<script>").attr("src", source_path))
+    }
+
     // ---
 
     /**
@@ -666,10 +670,6 @@ var dm3c = new function() {
         doctype_impl_sources.push(source_path)
     }
 
-    function javascript_source(source_path) {
-        $("head").append($("<script>").attr("src", source_path))
-    }
-
     // ---
 
     /**
@@ -690,6 +690,9 @@ var dm3c = new function() {
         }
     }
 
+    /**
+     * Loads and instantiates all registered client-side plugins.
+     */
     function load_plugins() {
         // 1) load plugins
         if (LOG_PLUGIN_LOADING) dm3c.log("Loading " + plugin_sources.length + " plugins:")
@@ -705,7 +708,7 @@ var dm3c = new function() {
         if (LOG_PLUGIN_LOADING) dm3c.log("Loading " + field_renderer_sources.length + " data field renderers:")
         for (var i = 0, field_renderer_source; field_renderer_source = field_renderer_sources[i]; i++) {
             if (LOG_PLUGIN_LOADING) dm3c.log("..... " + field_renderer_source)
-            javascript_source(field_renderer_source)
+            dm3c.javascript_source(field_renderer_source)
         }
         // 4) load CSS stylesheets
         if (LOG_PLUGIN_LOADING) dm3c.log("Loading " + css_stylesheets.length + " CSS stylesheets:")
@@ -718,7 +721,7 @@ var dm3c = new function() {
     function load_plugin(plugin_source) {
         // load
         if (LOG_PLUGIN_LOADING) dm3c.log("..... " + plugin_source)
-        javascript_source(plugin_source)
+        dm3c.javascript_source(plugin_source)
         // instantiate
         var plugin_class = js.basename(plugin_source)
         if (LOG_PLUGIN_LOADING) dm3c.log(".......... instantiating \"" + plugin_class + "\"")
@@ -728,7 +731,7 @@ var dm3c = new function() {
     function load_doctype_impl(doctype_impl_src) {
         // load
         if (LOG_PLUGIN_LOADING) dm3c.log("..... " + doctype_impl_src)
-        javascript_source(doctype_impl_src)
+        dm3c.javascript_source(doctype_impl_src)
         // instantiate
         var doctype_class = js.to_camel_case(js.basename(doctype_impl_src))
         if (LOG_PLUGIN_LOADING) dm3c.log(".......... instantiating \"" + doctype_class + "\"")
@@ -814,17 +817,19 @@ var dm3c = new function() {
             modal: true, autoOpen: false, draggable: false, resizable: false, width: UPLOAD_DIALOG_WIDTH
         })
         //
-        dm3c.canvas = new Canvas()
-        //
         extend_rest_client()
         //
         load_types()
         //
         // Note: in order to let a plugin DOM manipulate the GUI
-        // the plugins must be loaded _after_ the GUI is set up.
+        // the plugins are loaded *after* the GUI is set up.
         register_plugins()
         load_plugins()
-        //
+        // Note: in order to let a plugin provide a dedicated canvas renderer (the dm3-freifunk-geomap plugin does!)
+        // the canvas is created *after* loading the plugins.
+        dm3c.canvas = dm3c.trigger_hook("get_canvas_renderer")[0] || new Canvas()
+        // Note: in order to let a plugin provide the initial canvas rendering (the deepamehta3-topicmaps plugin does!)
+        // the "init" hook is triggered *after* creating the canvas.
         dm3c.trigger_hook("init")
         //
         // the create form
@@ -855,7 +860,7 @@ var dm3c = new function() {
         }
 
         function window_resized() {
-            dm3c.canvas.rebuild()
+            dm3c.canvas.resize()
             $("#detail-panel").height($("#canvas").height())
         }
     })
