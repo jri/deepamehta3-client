@@ -860,7 +860,7 @@ var dm3c = new function() {
         }
 
         function window_resized() {
-            dm3c.canvas.resize()
+            dm3c.canvas.adjust_size()
             $("#detail-panel").height($("#canvas").height())
         }
     })

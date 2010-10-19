@@ -2,6 +2,10 @@ function Canvas() {
 
     // ------------------------------------------------------------------------------------------------ Constructor Code
 
+    this.superclass = TopicmapRenderer
+    this.superclass()
+    var self = this
+
     // Settings
     var ACTIVE_COLOR = "red"
     var ACTIVE_TOPIC_WIDTH = 3
@@ -22,8 +26,6 @@ function Canvas() {
     var grid_positioning            // while grid positioning is in progress: a GridPositioning object, null otherwise
     
     // View (Canvas)
-    var canvas_width                // reflects canvas width (in pixel)
-    var canvas_height               // reflects canvas height (in pixel)
     var ctx                         // the canvas drawing context
 
     // Short-term Interaction State (model)
@@ -58,8 +60,8 @@ function Canvas() {
                     x = pos.x
                     y = pos.y
                 } else {
-                    x = canvas_width * Math.random() - trans_x
-                    y = canvas_height * Math.random() - trans_y
+                    x = self.canvas_width  * Math.random() - trans_x
+                    y = self.canvas_height * Math.random() - trans_y
                 }
             }
             // update model
@@ -184,7 +186,7 @@ function Canvas() {
         init_model()
     }
 
-    this.resize = function() {
+    this.adjust_size = function() {
         resize_canvas()
     }
 
@@ -209,7 +211,7 @@ function Canvas() {
 
 
     function draw() {
-        ctx.clearRect(-trans_x, -trans_y, canvas_width, canvas_height)
+        ctx.clearRect(-trans_x, -trans_y, self.canvas_width, self.canvas_height)
         //
         draw_relations()
         //
@@ -378,7 +380,7 @@ function Canvas() {
         if (dm3c.LOG_GUI) dm3c.log("Canvas resized: original with=" + ui_event.originalSize.width +
                                                    " current with=" + ui_event.size.width)
         // resize canvas
-        resize_canvas({width: ui_event.size.width, height: canvas_height})
+        resize_canvas({width: ui_event.size.width, height: self.canvas_height})
         // resize detail panel
         calculate_detail_panel_size()
         $("#detail-panel").width(detail_panel_width)
@@ -622,13 +624,13 @@ function Canvas() {
         var canvas = document.createElement("canvas")
         // calculate size
         if (size) {
-            canvas_width = size.width
-            canvas_height = size.height
+            self.canvas_width  = size.width
+            self.canvas_height = size.height
         } else {
-            calculate_size()
+            self.calculate_size()
         }
         // add to document
-        var canvas_elem = $(canvas).attr({id: "canvas", width: canvas_width, height: canvas_height})
+        var canvas_elem = $(canvas).attr({id: "canvas", width: self.canvas_width, height: self.canvas_height})
         $("#canvas-panel").append(canvas_elem)
         ctx = canvas.getContext("2d")
         // bind event handlers
@@ -637,19 +639,6 @@ function Canvas() {
         canvas.oncontextmenu = contextmenu
         canvas.ondragover = dragover
         canvas.ondrop = drop
-
-        function calculate_size() {
-            var w_w = window.innerWidth
-            var w_h = window.innerHeight
-            var t_h = $("#upper-toolbar").height()
-            canvas_width = w_w - detail_panel_width - 50    // 35px = 1.2em + 2 * 8px = 19(.2)px + 16px.
-                                            // Update: Safari 4 needs 15 extra pixel (for potential vertical scrollbar?)
-            canvas_height = w_h - t_h - 76  // was 60, then 67 (healing login dialog), then 76 (healing datepicker)
-            if (dm3c.LOG_GUI) {
-                dm3c.log("Calculating canvas size: window size=" + w_w + "x" + w_h + " toolbar height=" + t_h)
-                dm3c.log("..... new canvas size=" + canvas_width + "x" + canvas_height)
-            }
-        }
     }
 
     /**
@@ -677,7 +666,7 @@ function Canvas() {
 
     function calculate_detail_panel_size() {
         var w_w = window.innerWidth
-        detail_panel_width = w_w - canvas_width - 50        // -50px: see above
+        detail_panel_width = w_w - self.canvas_width - 50        // -50px: see above
     }
 
     function translate(tx, ty) {
@@ -700,9 +689,9 @@ function Canvas() {
     }
 
     function scroll_to_center(x, y) {
-        if (x < 0 || x >= canvas_width || y < 0 || y >= canvas_height) {
-            var dx = (canvas_width / 2 - x) / CANVAS_ANIMATION_STEPS
-            var dy = (canvas_height / 2 - y) / CANVAS_ANIMATION_STEPS
+        if (x < 0 || x >= self.canvas_width || y < 0 || y >= self.canvas_height) {
+            var dx = (self.canvas_width / 2 - x) / CANVAS_ANIMATION_STEPS
+            var dy = (self.canvas_height / 2 - y) / CANVAS_ANIMATION_STEPS
             var animation_count = 0;
             var animation = setInterval(function() {
                 translate(dx, dy)
@@ -815,15 +804,15 @@ function Canvas() {
             var ly = ct.label_y;
             // Note: if the label div is completely out of sight we must set it to "display: none".
             // Otherwise the document would grow and produce window scrollbars.
-            if (lx > canvas_width || ly > canvas_height) {
+            if (lx > self.canvas_width || ly > self.canvas_height) {
                 css.display = "none"
             } else {
                 var lw = ct.label_div.width()
                 var lh = ct.label_div.height()
                 var top = ly < 0 ? -ly + "px" : "auto"
-                var bottom = ly + lh > canvas_height ? canvas_height - ly + "px" : "auto"
+                var bottom = ly + lh > self.canvas_height ? self.canvas_height - ly + "px" : "auto"
                 var left = lx < 0 ? -lx + "px" : "auto"
-                var right = lx + lw > canvas_width ? canvas_width - lx + "px" : "auto"
+                var right = lx + lw > self.canvas_width ? self.canvas_width - lx + "px" : "auto"
                 css.clip = "rect(" + top + ", " + right + ", " + bottom + ", " + left + ")"
                 css.display = "block"
             }
@@ -857,7 +846,7 @@ function Canvas() {
         this.next_position = function() {
             var pos = {x: grid_x, y: grid_y}
             if (item_count == 0) {
-                scroll_to_center(canvas_width / 2, pos.y + trans_y)
+                scroll_to_center(self.canvas_width / 2, pos.y + trans_y)
             }
             //
             advance_position()
@@ -879,7 +868,7 @@ function Canvas() {
         }
 
         function advance_position() {
-            if (grid_x + GRID_DIST_X + trans_x > canvas_width) {
+            if (grid_x + GRID_DIST_X + trans_x > self.canvas_width) {
                 grid_x = START_X
                 grid_y += GRID_DIST_Y
             } else {
