@@ -41,9 +41,10 @@ function Canvas() {
     $("#canvas-panel").dblclick(dblclick)
     $("#canvas-panel").mousemove(mousemove)
     $("#canvas-panel").mouseleave(mouseleave)
-    $("#canvas-panel").resizable({handles: "e", resize: resize, stop: stop_resize})
 
     // ------------------------------------------------------------------------------------------------------ Public API
+
+    // === Overriding TopicmapRenderer Adapter Methods ===
 
     /**
      * @param   highlight_topic     Optional: if true, the topic is highlighted.
@@ -186,11 +187,11 @@ function Canvas() {
         init_model()
     }
 
-    this.adjust_size = function() {
+    this.resize = function() {
         resize_canvas()
     }
 
-    /*** Grid Positioning ***/
+    // --- Grid Positioning ---
 
     this.start_grid_positioning = function() {
         grid_positioning = new GridPositioning()
@@ -371,26 +372,6 @@ function Canvas() {
         if (ct) {
             dm3c.trigger_hook("topic_doubleclicked", ct)
         }
-    }
-
-    /**
-     * Triggered when the user resizes the canvas (by moving the split pane's resizable-handle).
-     */
-    function resize(event, ui_event) {
-        if (dm3c.LOG_GUI) dm3c.log("Canvas resized: original with=" + ui_event.originalSize.width +
-                                                   " current with=" + ui_event.size.width)
-        // resize canvas
-        resize_canvas({width: ui_event.size.width, height: self.canvas_height})
-        // resize detail panel
-        calculate_detail_panel_size()
-        $("#detail-panel").width(detail_panel_width)
-    }
-
-    function stop_resize() {
-        // While resizing-via-handle jQuery UI adds a "style" attribute with absolute size values to the canvas-panel.
-        // This stops its flexible sizing (that follows the canvas element's size) and breaks the layout once the main
-        // window is resized. Removing that style attribute once resizing-via-handle is finished solves that problem.
-        $("#canvas-panel").removeAttr("style")
     }
 
     // ---
@@ -620,18 +601,10 @@ function Canvas() {
      * 1) When the main GUI is build initially.
      * 2) When the canvas is resized interactively.
      */
-    function create_canvas_element(size) {
+    function create_canvas_element() {
         var canvas = document.createElement("canvas")
-        // calculate size
-        if (size) {
-            self.canvas_width  = size.width
-            self.canvas_height = size.height
-        } else {
-            self.calculate_size()
-        }
-        // add to document
         var canvas_elem = $(canvas).attr({id: "canvas", width: self.canvas_width, height: self.canvas_height})
-        $("#canvas-panel").append(canvas_elem)
+        $("#canvas-panel").append(canvas_elem)  // add to document
         ctx = canvas.getContext("2d")
         // bind event handlers
         canvas_elem.mousedown(mousedown)
@@ -645,28 +618,22 @@ function Canvas() {
      * Resizes the HTML5 canvas element.
      *
      * Called in 2 situations:
-     * 1) The user resizes the main window (in this case the "size" parameter is not given).
+     * 1) The user resizes the main window.
      * 2) The user resizes the canvas (by moving the split pane's resizable-handle).
      *
-     * @param   size    Optional: the new canvas size.
-     *                  If not given the size is calculated based on window size and detail panel size.
+     * @param   size    the new canvas size.
      */
-    function resize_canvas(size) {
+    function resize_canvas() {
         if (dm3c.LOG_GUI) dm3c.log("Rebuilding canvas")
         // Note: we don't empty the entire canvas-panel to keep the resizable-handle element.
         $("#canvas-panel #canvas").remove()
         $("#canvas-panel .canvas-topic-label").remove()
         // Note: in order to resize the canvas element we must recreate it.
         // Otherwise the browsers would just distort the canvas rendering.
-        create_canvas_element(size)
+        create_canvas_element()
         ctx.translate(trans_x, trans_y)
         draw()
         rebuild_topic_labels()
-    }
-
-    function calculate_detail_panel_size() {
-        var w_w = window.innerWidth
-        detail_panel_width = w_w - self.canvas_width - 50        // -50px: see above
     }
 
     function translate(tx, ty) {
