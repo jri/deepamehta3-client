@@ -1,3 +1,6 @@
+/**
+ * A document renderer that models a document as a set of fields.
+ */
 function PlainDocument() {
 
     var field_renderers         // key: field URI, value: renderer object
@@ -10,7 +13,9 @@ function PlainDocument() {
     $("#document-form").append($("<div>").addClass("autocomplete-list"))
     autocomplete_item = -1
 
-    // ------------------------------------------------------------------------------------------------ Overriding Hooks
+    // ------------------------------------------------------------------------------------------------------ Public API
+
+    // Interface of a document renderer.
 
     this.render_document = function(topic) {
 
@@ -115,15 +120,12 @@ function PlainDocument() {
         }
     }
 
-    this.process_form = function() {
-        //
-        dm3c.trigger_hook("pre_submit_form", dm3c.selected_topic)
-        //
+    this.process_form = function(topic) {
         // 1) update memory
         // remember old property values
-        var old_properties = js.clone(dm3c.selected_topic.properties)
+        var old_properties = js.clone(topic.properties)
         // read out values from GUI elements and update the topic
-        for (var i = 0, field; field = dm3c.type_cache.get_type(dm3c.selected_topic.type_uri).fields[i]; i++) {
+        for (var i = 0, field; field = dm3c.type_cache.get_type(topic.type_uri).fields[i]; i++) {
             if (!field.editable) {
                 continue
             }
@@ -133,21 +135,21 @@ function PlainDocument() {
             // null is a valid result (means: field renderer prevents the field from being updated).
             if (value !== undefined) {
                 if (value != null) {
-                    dm3c.selected_topic.properties[field.uri] = value
+                    topic.properties[field.uri] = value
                 }
             } else {
-                alert("WARNING (PlainDocument.do_save):\n\nRenderer for field \"" + field.label + "\" returned " +
-                    "no form value.\n\ntopic ID=" + dm3c.selected_topic.id + "\nfield=" + JSON.stringify(field))
+                alert("WARNING (PlainDocument.process_form):\n\nRenderer for field \"" + field.label + "\" returned " +
+                    "no form value.\n\ntopic ID=" + topic.id + "\nfield=" + JSON.stringify(field))
             }
         }
         // 2) update DB
-        dm3c.update_topic(dm3c.selected_topic, old_properties)
+        dm3c.update_topic(topic, old_properties)
         //
-        dm3c.trigger_hook("post_submit_form", dm3c.selected_topic)
+        dm3c.trigger_hook("post_submit_form", topic)
         //
         // 3) update GUI
-        var topic_id = dm3c.selected_topic.id
-        var label = dm3c.topic_label(dm3c.selected_topic)
+        var topic_id = topic.id
+        var label = dm3c.topic_label(topic)
         dm3c.canvas.set_topic_label(topic_id, label)
         dm3c.canvas.refresh()
         dm3c.render_topic()

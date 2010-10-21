@@ -48,7 +48,12 @@ function dm3_default () {
         }
 
         function do_save() {
-            dm3c.trigger_doctype_hook(topic, "process_form")
+            var result = dm3c.trigger_hook("pre_submit_form", dm3c.selected_topic)
+            if (!js.contains(result, false)) {
+                dm3c.trigger_doctype_hook(topic, "process_form", topic)
+            } else {
+                alert("submit is prohibited by plugin") // FIXME: drop this
+            }
         }
 
         function do_cancel() {

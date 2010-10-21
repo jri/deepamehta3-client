@@ -65,7 +65,7 @@ var js = {
     },
 
     /**
-     * Returns true if the array contains the object.
+     * Returns true if the array contains the object, false otherwise.
      */
     contains: function(array, object) {
         if (!array) {
