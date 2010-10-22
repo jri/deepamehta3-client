@@ -121,40 +121,41 @@ function PlainDocument() {
     }
 
     this.process_form = function(topic) {
-        // 1) update memory
-        // remember old property values
-        var old_properties = js.clone(topic.properties)
-        // read out values from GUI elements and update the topic
-        for (var i = 0, field; field = dm3c.type_cache.get_type(topic.type_uri).fields[i]; i++) {
-            if (!field.editable) {
-                continue
-            }
-            //
-            var value = trigger_renderer_hook(field, "read_form_value")
-            // Note: undefined value is an error (means: field renderer returned no value).
-            // null is a valid result (means: field renderer prevents the field from being updated).
-            if (value !== undefined) {
-                if (value != null) {
-                    topic.properties[field.uri] = value
-                }
-            } else {
-                alert("WARNING (PlainDocument.process_form):\n\nRenderer for field \"" + field.label + "\" returned " +
-                    "no form value.\n\ntopic ID=" + topic.id + "\nfield=" + JSON.stringify(field))
-            }
-        }
-        // 2) update DB
-        dm3c.update_topic(topic, old_properties)
-        //
+        // 1) update DB and memory
+        dm3c.update_topic(topic, read_form_values())
         dm3c.trigger_hook("post_submit_form", topic)
-        //
-        // 3) update GUI
+        // 2) update GUI
         var topic_id = topic.id
         var label = dm3c.topic_label(topic)
         dm3c.canvas.set_topic_label(topic_id, label)
         dm3c.canvas.refresh()
         dm3c.render_topic()
-        // trigger hook
         dm3c.trigger_hook("post_set_topic_label", topic_id, label)
+
+        /**
+         * Reads out values from GUI elements.
+         */
+        function read_form_values() {
+            var form_values = {}
+            for (var i = 0, field; field = dm3c.type_cache.get_type(topic.type_uri).fields[i]; i++) {
+                if (!field.editable) {
+                    continue
+                }
+                //
+                var value = trigger_renderer_hook(field, "read_form_value")
+                // Note: undefined value is an error (means: field renderer returned no value).
+                // null is a valid result (means: field renderer prevents the field from being updated).
+                if (value !== undefined) {
+                    if (value != null) {
+                        form_values[field.uri] = value
+                    }
+                } else {
+                    alert("WARNING (PlainDocument.process_form):\n\nRenderer for field \"" + field.label + "\" " +
+                        "returned no form value.\n\ntopic ID=" + topic.id + "\nfield=" + JSON.stringify(field))
+                }
+            }
+            return form_values
+        }
     }
 
     // ----------------------------------------------------------------------------------------------- Private Functions

@@ -57,7 +57,7 @@ var dm3c = new function() {
      * High-level utility method for plugin developers.
      *
      * @param   type_uri        The topic type URI, e.g. "de/deepamehta/core/topictype/Note".
-     * @param   properties      Optional: topic properties (object, key: field ID, value: content).
+     * @param   properties      Optional: topic properties (object, key: field URI, value: content).
      *
      * @return  The topic as stored in the DB.
      */
@@ -71,13 +71,18 @@ var dm3c = new function() {
     }
 
     /**
-     * Updates topic properties in the DB and triggers the "post_update_topic" hook.
+     * Updates topic properties in the DB and and memory.
+     * Triggers the "post_update_topic" hook.
      *
      * High-level utility method for plugin developers.
      */
-    this.update_topic = function(topic, old_properties) {
+    this.update_topic = function(topic, properties) {
         // update DB
-        dm3c.restc.set_topic_properties(topic.id, topic.properties)
+        dm3c.restc.set_topic_properties(topic.id, properties)
+        // update memory
+        var old_properties = {}
+        js.copy(topic.properties, old_properties)
+        js.copy(properties, topic.properties)
         // trigger hook
         dm3c.trigger_hook("post_update_topic", topic, old_properties)
     }
@@ -129,7 +134,7 @@ var dm3c = new function() {
      * High-level utility method for plugin developers.
      *
      * @param   type_id             The relation type ID, e.g. "RELATION", "SEARCH_RESULT".
-     * @param   properties          Optional: relation properties (object, key: field ID, value: content).
+     * @param   properties          Optional: relation properties (object, key: field URI, value: content).
      *
      * @return  The relation as stored in the DB.
      */
@@ -180,10 +185,10 @@ var dm3c = new function() {
     /**
      * Creates a topic type in the DB.
      *
-     * @param   type_uri        The topic type URI, e.g. "de/deepamehta/core/topictype/Note".
-     * @param   properties      Optional: topic properties (object, key: field ID, value: content).
+     * @param   type_uri        The topic type URI, e.g. "de/deepamehta/core/topictype/Note".        FIXME: update docu
+     * @param   properties      Optional: topic properties (object, key: field URI, value: content). FIXME: update docu
      *
-     * @return  The topic view of the created topic type.
+     * @return  The topic view of the created topic type.                                            FIXME: update docu
      */
     this.create_topic_type = function(topic_type) {
         // update DB
