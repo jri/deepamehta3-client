@@ -210,8 +210,13 @@ var dm3c = new function() {
         css_stylesheets.push(css_path)
     }
 
-    this.javascript_source = function(source_path) {
-        $("head").append($("<script>").attr("src", source_path))
+    this.javascript_source = function(source_path, callback) {
+        $.ajax({
+            url: source_path,
+            dataType: "script",
+            success: callback,
+            async: callback != undefined
+        })
     }
 
     // ---
@@ -690,54 +695,6 @@ var dm3c = new function() {
         }
     }
 
-    /**
-     * Loads and instantiates all registered client-side plugins.
-     */
-    function load_plugins() {
-        // 1) load plugins
-        if (LOG_PLUGIN_LOADING) dm3c.log("Loading " + plugin_sources.length + " plugins:")
-        for (var i = 0, plugin_source; plugin_source = plugin_sources[i]; i++) {
-            load_plugin(plugin_source)
-        }
-        // 2) load doctype renderers
-        if (LOG_PLUGIN_LOADING) dm3c.log("Loading " + doctype_impl_sources.length + " doctype renderers:")
-        for (var i = 0, doctype_impl_src; doctype_impl_src = doctype_impl_sources[i]; i++) {
-            load_doctype_impl(doctype_impl_src)
-        }
-        // 3) load field renderers
-        if (LOG_PLUGIN_LOADING) dm3c.log("Loading " + field_renderer_sources.length + " data field renderers:")
-        for (var i = 0, field_renderer_source; field_renderer_source = field_renderer_sources[i]; i++) {
-            if (LOG_PLUGIN_LOADING) dm3c.log("..... " + field_renderer_source)
-            dm3c.javascript_source(field_renderer_source)
-        }
-        // 4) load CSS stylesheets
-        if (LOG_PLUGIN_LOADING) dm3c.log("Loading " + css_stylesheets.length + " CSS stylesheets:")
-        for (var i = 0, css_stylesheet; css_stylesheet = css_stylesheets[i]; i++) {
-            if (LOG_PLUGIN_LOADING) dm3c.log("..... " + css_stylesheet)
-            $("head").append($("<link>").attr({rel: "stylesheet", href: css_stylesheet, type: "text/css"}))
-        }
-    }
-
-    function load_plugin(plugin_source) {
-        // load
-        if (LOG_PLUGIN_LOADING) dm3c.log("..... " + plugin_source)
-        dm3c.javascript_source(plugin_source)
-        // instantiate
-        var plugin_class = js.basename(plugin_source)
-        if (LOG_PLUGIN_LOADING) dm3c.log(".......... instantiating \"" + plugin_class + "\"")
-        plugins[plugin_class] = js.new_object(plugin_class)
-    }
-
-    function load_doctype_impl(doctype_impl_src) {
-        // load
-        if (LOG_PLUGIN_LOADING) dm3c.log("..... " + doctype_impl_src)
-        dm3c.javascript_source(doctype_impl_src)
-        // instantiate
-        var doctype_class = js.to_camel_case(js.basename(doctype_impl_src))
-        if (LOG_PLUGIN_LOADING) dm3c.log(".......... instantiating \"" + doctype_class + "\"")
-        doctype_impls[doctype_class] = js.new_object(doctype_class)
-    }
-
     // ---
 
     function get_commands(cmd_lists, context) {
@@ -780,6 +737,7 @@ var dm3c = new function() {
     // ------------------------------------------------------------------------------------------------ Constructor Code
 
     // --- register default modules ---
+    //
     register_doctype_renderer("script/plain_document.js")
     //
     this.register_field_renderer("script/datafield-renderers/text_field_renderer.js")
@@ -794,7 +752,6 @@ var dm3c = new function() {
     register_plugin("script/dm3_default.js")
     register_plugin("script/dm3_fulltext.js")
     register_plugin("script/dm3_tinymce.js")
-    // css_stylesheet("style/main.css")     // layout flatters while loading
 
     var generic_topic_icon = this.create_image(GENERIC_TOPIC_ICON_SRC)
 
@@ -825,7 +782,10 @@ var dm3c = new function() {
         // the plugins are loaded *after* the GUI is set up.
         register_plugins()
         load_plugins()
-        // Note: in order to let a plugin provide a dedicated canvas renderer (the dm3-freifunk-geomap plugin does!)
+        load_document_renderers()
+        load_field_renderers()
+        load_stylesheets()
+        // Note: in order to let a plugin provide a custom canvas renderer (the dm3-freifunk-geomap plugin does!)
         // the canvas is created *after* loading the plugins.
         dm3c.canvas = dm3c.trigger_hook("get_canvas_renderer")[0] || new Canvas()
         // Note: in order to let a plugin provide the initial canvas rendering (the deepamehta3-topicmaps plugin does!)
@@ -844,6 +804,75 @@ var dm3c = new function() {
             $("#detail-panel").height($("#canvas").height())
         })
 
+        /**
+         * Loads and instantiates all registered plugins.
+         */
+        function load_plugins() {
+
+            if (LOG_PLUGIN_LOADING) dm3c.log("Loading " + plugin_sources.length + " plugins:")
+            for (var i = 0, plugin_source; plugin_source = plugin_sources[i]; i++) {
+                load_plugin(plugin_source)
+            }
+
+            function load_plugin(plugin_source) {
+                if (LOG_PLUGIN_LOADING) dm3c.log("..... " + plugin_source)
+                // 1) load
+                dm3c.javascript_source(plugin_source)
+                // 2) instantiate
+                var plugin_class = js.basename(plugin_source)
+                if (LOG_PLUGIN_LOADING) dm3c.log(".......... instantiating \"" + plugin_class + "\"")
+                plugins[plugin_class] = js.new_object(plugin_class)
+            }
+        }
+
+        function load_document_renderers() {
+
+            if (LOG_PLUGIN_LOADING) dm3c.log("Loading " + doctype_impl_sources.length + " doctype renderers:")
+            for (var i = 0, doctype_impl_src; doctype_impl_src = doctype_impl_sources[i]; i++) {
+                load_doctype_impl(doctype_impl_src)
+            }
+
+            function load_doctype_impl(doctype_impl_src) {
+                if (LOG_PLUGIN_LOADING) dm3c.log("..... " + doctype_impl_src)
+                //
+                // Note: the PlainDocument renderer can't be loaded dynamically because of a strange Firefox problem.
+                // If script is loaded synchronously: instantiation fails ("PlainDocument is not defined").
+                // If script is loaded asynchronously (with a callback): instantiation fails silently.
+                // The workaround is to load plain_document.js statically (see index.html).
+                // With Safari their is no problem at all.
+                //
+                // 1) load
+                // dm3c.javascript_source(doctype_impl_src)
+                //
+                // 2) instantiate
+                var doctype_class = js.to_camel_case(js.basename(doctype_impl_src))
+                if (LOG_PLUGIN_LOADING) dm3c.log(".......... instantiating \"" + doctype_class + "\"")
+                if (LOG_PLUGIN_LOADING) dm3c.log("...........typeof=" + typeof(eval(doctype_class)))
+                doctype_impls[doctype_class] = js.new_object(doctype_class)
+            }
+        }
+
+        function load_field_renderers() {
+            if (LOG_PLUGIN_LOADING) dm3c.log("Loading " + field_renderer_sources.length + " data field renderers:")
+            for (var i = 0, field_renderer_source; field_renderer_source = field_renderer_sources[i]; i++) {
+                if (LOG_PLUGIN_LOADING) dm3c.log("..... " + field_renderer_source)
+                dm3c.javascript_source(field_renderer_source, function() {})
+            }
+        }
+
+        function load_stylesheets() {
+            if (LOG_PLUGIN_LOADING) dm3c.log("Loading " + css_stylesheets.length + " CSS stylesheets:")
+            for (var i = 0, css_stylesheet; css_stylesheet = css_stylesheets[i]; i++) {
+                if (LOG_PLUGIN_LOADING) dm3c.log("..... " + css_stylesheet)
+                $("head").append($("<link>").attr({rel: "stylesheet", href: css_stylesheet, type: "text/css"}))
+            }
+        }
+
+        function window_resized() {
+            dm3c.canvas.adjust_size()
+            $("#detail-panel").height($("#canvas").height())
+        }
+
         function extend_rest_client() {
 
             dm3c.restc.search_topics_and_create_bucket = function(text, field_uri, whole_word) {
@@ -857,11 +886,6 @@ var dm3c = new function() {
             dm3c.restc.get_topics_and_create_bucket = function(type_uri) {
                 return this.request("GET", "/client/search/by_type/" + encodeURIComponent(type_uri))
             }
-        }
-
-        function window_resized() {
-            dm3c.canvas.adjust_size()
-            $("#detail-panel").height($("#canvas").height())
         }
     })
 }
