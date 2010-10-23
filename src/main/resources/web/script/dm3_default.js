@@ -27,9 +27,8 @@ function dm3_default () {
         return [
             {label: "Hide",   handler: do_hide,            context: "context-menu"},
             {label: "Relate", handler: do_relate,          context: "context-menu"},
-            {is_separator: true,                           context: "context-menu"},
-            {label: "Delete", handler: do_confirm,         context: "context-menu"},
             {label: "Edit",   handler: dm3c.edit_document, context: "detail-panel-show", ui_icon: "pencil"},
+            {label: "Delete", handler: do_confirm,         context: "detail-panel-show", ui_icon: "trash"},
             {label: "Save",   handler: do_save,            context: "detail-panel-edit", ui_icon: "circle-check",
                                                                                          is_submit: true},
             {label: "Cancel", handler: do_cancel,          context: "detail-panel-edit"}
