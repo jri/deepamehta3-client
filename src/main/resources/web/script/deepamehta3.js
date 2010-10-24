@@ -761,7 +761,8 @@ var dm3c = new function() {
     var generic_topic_icon = this.create_image(GENERIC_TOPIC_ICON_SRC)
 
     $(function() {
-        // --- setup GUI ---
+        //
+        // --- 1) Prepare GUI ---
         $("#upper-toolbar").addClass("ui-widget-header").addClass("ui-corner-all")
         // the search form
         $("#searchmode-select-placeholder").replaceWith(searchmode_select())
@@ -773,23 +774,24 @@ var dm3c = new function() {
         // the document form
         $("#document-form").submit(submit_document)
         detail_panel_width = $("#detail-panel").width()
-        if (dm3c.LOG_GUI) dm3c.log("Detail panel width: " + detail_panel_width)
-        // The upload dialog
+        if (dm3c.LOG_GUI) dm3c.log("Mesuring detail panel width: " + detail_panel_width)
+        // the upload dialog
         $("#upload-dialog").dialog({
             modal: true, autoOpen: false, draggable: false, resizable: false, width: UPLOAD_DIALOG_WIDTH
         })
         //
+        // --- 2) Load Plugins ---
+        // Note: in order to let a plugin DOM manipulate the GUI the plugins are loaded *after* the GUI is prepared.
         extend_rest_client()
-        //
         load_types()
         //
-        // Note: in order to let a plugin DOM manipulate the GUI
-        // the plugins are loaded *after* the GUI is set up.
         register_plugins()
         load_plugins()
         load_document_renderers()
         load_field_renderers()
         load_stylesheets()
+        //
+        // --- 3) Setup GUI ---
         // Note: in order to let a plugin provide a custom canvas renderer (the dm3-freifunk-geomap plugin does!)
         // the canvas is created *after* loading the plugins.
         dm3c.canvas = dm3c.trigger_hook("get_canvas_renderer")[0] || new Canvas()
@@ -803,11 +805,11 @@ var dm3c = new function() {
         //
         dm3c.ui.menu("searchmode-select", searchmode_selected)
         dm3c.ui.menu("special-select", special_selected, undefined, "Special")
+        // the detail panel
+        if (dm3c.LOG_GUI) dm3c.log("Setting detail panel height: " + $("#canvas").height())
+        $("#detail-panel").height($("#canvas").height())
         //
         $(window).resize(window_resized)
-        $(window).load(function() {
-            $("#detail-panel").height($("#canvas").height())
-        })
 
         /**
          * Loads and instantiates all registered plugins.

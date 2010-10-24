@@ -82,7 +82,7 @@ function TopicmapRenderer() {
         self.canvas_height = w_h - t_h - 76 // was 60, then 67 (healing login dialog), then 76 (healing datepicker)
         if (dm3c.LOG_GUI) {
             dm3c.log("Calculating canvas size: window size=" + w_w + "x" + w_h + " toolbar height=" + t_h)
-            dm3c.log("..... new canvas size=" + self.canvas_width + "x" + self.canvas_height)
+            dm3c.log("..... resulting canvas size=" + self.canvas_width + "x" + self.canvas_height)
         }
     }
 

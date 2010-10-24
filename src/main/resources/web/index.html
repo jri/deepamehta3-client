@@ -38,12 +38,20 @@
                 <div id="special-select-placeholder"></div>
             </div>
         </div>
-        <div id="canvas-panel">
-        </div>
-        <form action="#" id="document-form">
-            <div id="detail-panel"></div>
-            <div id="lower-toolbar" class="dm-toolbar"></div>
-        </form>
+        <table id="split-panel">
+            <tr>
+                <td>
+                    <div id="canvas-panel">
+                    </div>
+                </td>
+                <td>
+                    <form action="#" id="document-form">
+                        <div id="detail-panel"></div>
+                        <div id="lower-toolbar" class="dm-toolbar"></div>
+                    </form>
+                </td>
+            </tr>
+        </table>
         <div id="upload-dialog" title="Upload File">
             File:
             <form action="/core/command" method="post" enctype="multipart/form-data" target="upload-target">

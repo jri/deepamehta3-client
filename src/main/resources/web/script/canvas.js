@@ -744,6 +744,11 @@ function Canvas() {
             ct.label_y = ct.y + ct.loy + trans_y
         }
 
+        /**
+         * Called in 2 situations:
+         * - the topic is build initially.
+         * - all label div's are rebuild (in reaction of resizing the canvas).
+         */
         function build_label(ct) {
             // Note: we must add the label div to the document (along with text content and max-width
             // setting) _before_ the clipping is applied. Otherwise the clipping can't be calculated
@@ -758,6 +763,11 @@ function Canvas() {
 
         /**
          * Builds the CSS for positioning and clipping the label div.
+         *
+         * Called in 3 situations:
+         * - the label div is build initially.
+         * - the topic has moved.
+         * - the label div has moved.
          */
         function label_position_css(ct) {
             // 1) Positioning

@@ -19,8 +19,18 @@ body {
     margin-right: 3em;
 }
 
+/*** Split Panel ***/
+
+#split-panel {
+    border-spacing: 0;
+}
+
+#split-panel td {
+    padding: 0;
+    vertical-align: top;
+}
+
 #canvas-panel {
-    float: left;
     margin-right: 1.2em;
 }
 
