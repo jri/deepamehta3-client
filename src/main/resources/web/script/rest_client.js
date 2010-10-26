@@ -233,7 +233,7 @@ function RESTClient(core_service_uri) {
             if (query_string) {
                 query_string = "?" + query_string
             }
-            return query_string
+            return encodeURI(query_string)
         }
 
         function add(param_name, value) {
