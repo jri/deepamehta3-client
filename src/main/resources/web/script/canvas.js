@@ -170,9 +170,9 @@ function Canvas() {
         close_context_menu()
     }
 
-    this.begin_relation = function(doc_id, event) {
+    this.begin_relation = function(topic_id, event) {
         relation_in_progress = true
-        action_topic = topic_by_id(doc_id)
+        action_topic = topic_by_id(topic_id)
         //
         tmp_x = cx(event)
         tmp_y = cy(event)
@@ -453,7 +453,8 @@ function Canvas() {
         var ct, ca
         if (ct = topic_by_position(event)) {
             select_topic(ct.id, true)
-            var commands = dm3c.get_topic_commands(ct, "context-menu")
+            // Note: only dm3c.selected_topic has the auxiliary attributes (the canvas topic has not)
+            var commands = dm3c.get_topic_commands(dm3c.selected_topic, "context-menu")
         } else if (ca = assoc_by_position(event)) {
             dm3c.current_rel_id = ca.id
             draw()
@@ -536,13 +537,13 @@ function Canvas() {
         trans_x = 0, trans_y = 0
     }
 
-    function select_topic(doc_id, synchronous) {
-        set_highlight_topic(doc_id)
+    function select_topic(topic_id, synchronous) {
+        set_highlight_topic(topic_id)
         draw()
         if (synchronous) {
-            dm3c.render_topic(doc_id)
+            dm3c.render_topic(topic_id)
         } else {
-            setTimeout(dm3c.render_topic, 0, doc_id)
+            setTimeout(dm3c.render_topic, 0, topic_id)
         }
     }
 

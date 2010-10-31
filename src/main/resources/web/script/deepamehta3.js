@@ -387,10 +387,8 @@ var dm3c = new function() {
             dm3c.render_topic(topic.id)
             break
         case "edit":
-            // update global state
-            dm3c.selected_topic = topic
-            //
-            dm3c.edit_document()
+            dm3c.selected_topic = topic     // update global state
+            dm3c.edit_topic(topic)
             break
         default:
             alert("WARNING (add_topic_to_canvas):\n\nUnexpected action: \"" + action + "\"")
@@ -403,25 +401,25 @@ var dm3c = new function() {
      * If no topic is specified, the selected topic is re-fetched.
      * If there is no selected topic the detail panel is emptied.
      */
-    this.render_topic = function(doc_id) {
-        if (doc_id == undefined) {
+    this.render_topic = function(topic_id) {
+        if (topic_id == undefined) {
             if (dm3c.selected_topic) {
-                doc_id = dm3c.selected_topic.id
+                topic_id = dm3c.selected_topic.id
             } else {
                 dm3c.empty_detail_panel()
                 return
             }
         }
         // fetch topic
-        var topic = dm3c.restc.get_topic(doc_id)
+        var topic = dm3c.restc.get_topic(topic_id)
         // update global state
         dm3c.selected_topic = topic
         //
         dm3c.trigger_doctype_hook(dm3c.selected_topic, "render_document", dm3c.selected_topic)
     }
 
-    this.edit_document = function() {
-        dm3c.trigger_doctype_hook(dm3c.selected_topic, "render_form", dm3c.selected_topic)
+    this.edit_topic = function(topic) {
+        dm3c.trigger_doctype_hook(topic, "render_form", topic)
     }
 
     // ---
@@ -716,8 +714,8 @@ var dm3c = new function() {
 
     // --- DB ---
 
-    function document_exists(doc_id) {
-        return dm3c.restc.get_topic(doc_id) != null
+    function document_exists(topic_id) {
+        return dm3c.restc.get_topic(topic_id) != null
     }
 
     // --- Types ---

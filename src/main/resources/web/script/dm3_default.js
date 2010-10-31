@@ -24,15 +24,22 @@ function dm3_default () {
 
     this.add_topic_commands = function(topic) {
 
-        return [
-            {label: "Hide",   handler: do_hide,            context: "context-menu"},
-            {label: "Relate", handler: do_relate,          context: "context-menu"},
-            {label: "Edit",   handler: dm3c.edit_document, context: "detail-panel-show", ui_icon: "pencil"},
-            {label: "Delete", handler: do_confirm,         context: "detail-panel-show", ui_icon: "trash"},
-            {label: "Save",   handler: do_save,            context: "detail-panel-edit", ui_icon: "circle-check",
-                                                                                         is_submit: true},
-            {label: "Cancel", handler: do_cancel,          context: "detail-panel-edit"}
-        ]
+        var commands = []
+        //
+        commands.push({label: "Hide",   handler: do_hide,    context: "context-menu"})
+        commands.push({label: "Relate", handler: do_relate,  context: "context-menu"})
+        //
+        var result = dm3c.trigger_hook("has_write_permission", topic)
+        if (!js.contains(result, false)) {
+            commands.push({label: "Edit",   handler: do_edit,    context: "detail-panel-show", ui_icon: "pencil"})
+            commands.push({label: "Delete", handler: do_confirm, context: "detail-panel-show", ui_icon: "trash"})
+        }
+        //
+        commands.push({label: "Save",   handler: do_save,    context: "detail-panel-edit", ui_icon: "circle-check",
+                                                                                           is_submit: true})
+        commands.push({label: "Cancel", handler: do_cancel,  context: "detail-panel-edit"})
+        //
+        return commands
 
         function do_hide() {
             dm3c.hide_topic(topic.id)
@@ -40,6 +47,10 @@ function dm3_default () {
 
         function do_relate(event) {
             dm3c.canvas.begin_relation(topic.id, event)
+        }
+
+        function do_edit() {
+            dm3c.edit_topic(topic)
         }
 
         function do_confirm() {

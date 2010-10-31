@@ -25,7 +25,7 @@ body {
     border-spacing: 0;
 }
 
-#split-panel td {
+#split-panel > tbody > tr > td {
     padding: 0;
     vertical-align: top;
 }
