@@ -156,14 +156,14 @@ function UIHelper() {
             // placeholder element (in case the menu is build from a <select> element).
             add_to_page()
 
-            /****************************** "Public" API ******************************/
+            // ---------------------------------------------------------------------------------------------- Public API
 
             /**
              * @param   item    The menu item to add. An object with this elements:
              *                      "label" - The label to be displayed in the menu.
              *                      "value" - Optional: the value to be examined by the caller.
-             *                          Note: if this item is about to be selected programatically the value must be
-             *                          specified.
+             *                          Note: if this item is about to be selected programatically or re-labeled
+             *                          the value must be specified.
              *                      "icon" - Optional: the icon to decorate the item (relative or absolute URL).
              *                      "is_trigger" (boolean) - Optional: if true this item acts as stateless
              *                          action-trigger within an stateful select-like menu. Default is false.
@@ -190,6 +190,15 @@ function UIHelper() {
                 select_item(find_item(item_value))
             }
 
+            this.set_item_label = function(item_value, new_label) {
+                find_item(item_value, function(item, item_id) {
+                    // update model
+                    item.label = new_label
+                    // update GUI
+                    $("#" + anchor_id(item_id)).text(new_label)
+                })
+            }
+
             this.get_selection = function() {
                 return selection
             }
@@ -200,7 +209,15 @@ function UIHelper() {
 
             this.dom = dom
 
-            /****************************** The Menu ******************************/
+            // --------------------------------------------------------------------------------------- Private Functions
+
+
+
+            /****************/
+            /*** The Menu ***/
+            /****************/
+
+
 
             function build_menu() {
                 menu = $("<div>").addClass("contextmenu").css({position: "absolute"})
@@ -213,7 +230,8 @@ function UIHelper() {
                     items = []
                     //
                     $("#" + menu_id + " option").each(function() {
-                        // Note: "this" references the <option> DOM element.
+                        // Note 1: "this" references the <option> DOM element.
+                        // Note 2: if there is no explicit "value" attribute the value equals the label.
                         add_item({label: $(this).text(), value: this.value})
                     })
                 }
@@ -294,7 +312,13 @@ function UIHelper() {
                 menu.hide()
             }
 
-            /****************************** The Button ******************************/
+
+
+            /******************/
+            /*** The Button ***/
+            /******************/
+
+
 
             function build_button() {
                 // Note: type="button" is required. Otherwise the button acts as submit button (if contained in a form).
@@ -322,24 +346,40 @@ function UIHelper() {
                 return false
             }
 
-            /****************************** The Compound ******************************/
+
+
+            /********************/
+            /*** The Compound ***/
+            /********************/
+
+
 
             function add_to_page() {
                 dom = $("<span>").attr("id", menu_id).append(button).append(menu)
                 $("#" + menu_id).replaceWith(dom)
             }
 
-            /****************************** Helper ******************************/
+
+
+            /**************/
+            /*** Helper ***/
+            /**************/
+
+
 
             /**
              * Finds the menu item with the provided value.
              *
              * @return  the found item or undefined
              */
-            function find_item(value) {
+            function find_item(value, func) {
                 for (var i = 0, item; item = items[i]; i++) {
                     if (item.value == value) {
-                        return item
+                        if (func) {
+                            func(item, i)
+                        } else {
+                            return item
+                        }
                     }
                 }
             }
@@ -371,6 +411,10 @@ function UIHelper() {
 
     this.select_menu_item = function(menu_id, item_value) {
         menus[menu_id].select(item_value)
+    }
+
+    this.set_menu_item_label = function(menu_id, item_value, new_label) {
+        menus[menu_id].set_item_label(item_value, new_label)
     }
 
     this.menu_item = function(menu_id) {

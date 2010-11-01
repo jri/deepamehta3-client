@@ -327,12 +327,6 @@ var dm3c = new function() {
         return get_commands(dm3c.trigger_hook("add_canvas_commands"), context)
     }
 
-    // --- Cookie Support ---
-
-    this.set_cookie = function(key, value) {
-        document.cookie = key + "=" + value + ";path=" + CORE_SERVICE_URI
-    }
-
     // === GUI ===
 
     /**
@@ -441,6 +435,25 @@ var dm3c = new function() {
         var selection = dm3c.ui.menu_item(menu_id).value
         $("#" + menu_id).replaceWith(dm3c.create_type_menu(menu_id))
         dm3c.ui.select_menu_item(menu_id, selection)
+    }
+
+    // ---
+
+    /**
+     * Adds a menu item to the special menu.
+     *
+     * @param   item    The menu item to add. An object with this properties:
+     *                      "label" - The label to be displayed in the special menu.
+     *                      "value" - Optional: the value to be examined by the caller.
+     *                          Note: if this item is about to be selected programatically or re-labeled
+     *                          the value must be specified.
+     */
+    this.add_to_special_menu = function(item) {
+        var option = $("<option>").text(item.label)
+        if (item.value) {
+            option.attr("value", item.value)
+        }
+        $("#special-menu").append(option)
     }
 
     // --- File upload ---
@@ -632,7 +645,7 @@ var dm3c = new function() {
     // --- Special Menu ---
 
     function create_special_select() {
-        return $("<select>").attr("id", "special-select")
+        return $("<select>").attr("id", "special-menu")
     }
 
     function special_selected(menu_item) {
@@ -768,7 +781,7 @@ var dm3c = new function() {
         $("#search-form").submit(search)
         dm3c.ui.button("search-button", search, "Search", "gear")
         // the special form
-        $("#special-select-placeholder").replaceWith(create_special_select())
+        $("#special-menu-placeholder").replaceWith(create_special_select())
         // the document form
         $("#document-form").submit(submit_document)
         detail_panel_width = $("#detail-panel").width()
@@ -802,7 +815,7 @@ var dm3c = new function() {
         dm3c.ui.button("create-button", create_topic_from_menu, "Create", "plus")
         //
         dm3c.ui.menu("searchmode-select", searchmode_selected)
-        dm3c.ui.menu("special-select", special_selected, undefined, "Special")
+        dm3c.ui.menu("special-menu", special_selected, undefined, "Special")
         // the detail panel
         if (dm3c.LOG_GUI) dm3c.log("Setting detail panel height: " + $("#canvas").height())
         $("#detail-panel").height($("#canvas").height())

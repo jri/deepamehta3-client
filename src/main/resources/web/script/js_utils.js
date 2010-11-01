@@ -1,10 +1,15 @@
-/************************************/
-/*** Generic JavaScript Utilities ***/
-/************************************/
-
-
-
+/**
+ * Generic JavaScript Utilities.
+ */
 var js = {
+
+
+
+    // ************************
+    // *** Arrays & Objects ***
+    // ************************
+
+
 
     /**
      * Filters array elements that match a filter function.
@@ -140,7 +145,13 @@ var js = {
         }
     },
 
-    // === Text Utilities ===
+
+
+    // ************
+    // *** Text ***
+    // ************
+
+
 
     render_text: function(text) {
         return text.replace ? text.replace(/\n/g, "<br>") : text
@@ -193,5 +204,41 @@ var js = {
 
     format_timestamp: function(timestamp) {
         return new Date(timestamp).toLocaleString()
+    },
+
+
+
+    // ***************
+    // *** Cookies ***
+    // ***************
+
+
+
+    set_cookie: function(key, value) {
+        /* var days = 2
+        var expires = new Date()
+        expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000) */
+        //
+        // DeepaMehta note: the cookie's path must be explicitly set to "/". If not set the browser would set it to
+        // "/de.deepamehta.3-client" (the "directory" of the page that loaded this script) and the cookie will not be
+        // send back to the server for XHR requests as these are bound to "/core".
+        // Vice versa we can't set the cookie's path to "/core" because it would not be accessible here at client-side.
+        document.cookie = key + "=" + value + ";path=/" // + ";expires=" + expires.toGMTString()
+    },
+
+    get_cookie: function(key) {
+        // Note: document.cookie contains all cookies as one string, e.g. "username=jri; workspace_id=83".
+        if (document.cookie.match(new RegExp("\\b" + key + "=(\\w*)"))) {
+            return RegExp.$1
+        }
+    },
+
+    remove_cookie: function(key) {
+        // Note: setting the expire date to yesterday removes the cookie
+        var days = -1
+        var expires = new Date()
+        expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000)
+        //
+        document.cookie = key + "=;path=/;expires=" + expires.toGMTString()
     }
 }
