@@ -424,8 +424,13 @@ var dm3c = new function() {
         for (var i = 0; i < type_uris.length; i++) {
             var type_uri = type_uris[i]
             // add type to menu
-            if (!js.contains(EXCLUDE_TYPES_FROM_MENUS, type_uri)) {
-                type_menu.add_item({label: type_label(type_uri), value: type_uri, icon: dm3c.get_icon_src(type_uri)})
+            var result = dm3c.trigger_hook("has_create_permission", dm3c.type_cache.get_type(type_uri))
+            if (!js.contains(result, false) && !js.contains(EXCLUDE_TYPES_FROM_MENUS, type_uri)) {
+                type_menu.add_item({
+                    label: type_label(type_uri),
+                    value: type_uri,
+                    icon: dm3c.get_icon_src(type_uri)
+                })
             }
         }
         return type_menu
@@ -810,9 +815,14 @@ var dm3c = new function() {
         // the "init" hook is triggered *after* creating the canvas.
         dm3c.trigger_hook("init")
         //
-        // the create form
-        $("#create-type-menu-placeholder").replaceWith(dm3c.create_type_menu("create-type-menu").dom)
-        dm3c.ui.button("create-button", create_topic_from_menu, "Create", "plus")
+        // setup create widget
+        var menu = dm3c.create_type_menu("create-type-menu")
+        if (menu.get_item_count()) {
+            $("#create-type-menu-placeholder").replaceWith(menu.dom)
+            dm3c.ui.button("create-button", create_topic_from_menu, "Create", "plus")
+        } else {
+            $("#create-widget").hide()
+        }
         //
         dm3c.ui.menu("searchmode-select", searchmode_selected)
         dm3c.ui.menu("special-menu", special_selected, undefined, "Special")

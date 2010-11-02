@@ -203,6 +203,10 @@ function UIHelper() {
                 return selection
             }
 
+            this.get_item_count = function() {
+                return items.length
+            }
+
             this.hide = function() {
                 hide_menu()
             }

@@ -26,8 +26,8 @@ function dm3_default () {
 
         var commands = []
         //
-        commands.push({label: "Hide",   handler: do_hide,    context: "context-menu"})
-        commands.push({label: "Relate", handler: do_relate,  context: "context-menu"})
+        commands.push({label: "Hide",   handler: do_hide,   context: "context-menu"})
+        commands.push({label: "Relate", handler: do_relate, context: "context-menu"})
         //
         var result = dm3c.trigger_hook("has_write_permission", topic)
         if (!js.contains(result, false)) {
@@ -35,9 +35,9 @@ function dm3_default () {
             commands.push({label: "Delete", handler: do_confirm, context: "detail-panel-show", ui_icon: "trash"})
         }
         //
-        commands.push({label: "Save",   handler: do_save,    context: "detail-panel-edit", ui_icon: "circle-check",
-                                                                                           is_submit: true})
-        commands.push({label: "Cancel", handler: do_cancel,  context: "detail-panel-edit"})
+        commands.push({label: "Save",   handler: do_save,   context: "detail-panel-edit", ui_icon: "circle-check",
+                                                                                          is_submit: true})
+        commands.push({label: "Cancel", handler: do_cancel, context: "detail-panel-edit"})
         //
         return commands
 
