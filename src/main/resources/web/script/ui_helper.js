@@ -199,6 +199,9 @@ function UIHelper() {
                 })
             }
 
+            /**
+             * Returns the selected menu item or undefined/null if this menu has no items.
+             */
             this.get_selection = function() {
                 return selection
             }
@@ -421,6 +424,9 @@ function UIHelper() {
         menus[menu_id].set_item_label(item_value, new_label)
     }
 
+    /**
+     * Returns the selected menu item or undefined/null if the menu has no items.
+     */
     this.menu_item = function(menu_id) {
         return menus[menu_id].get_selection()
     }

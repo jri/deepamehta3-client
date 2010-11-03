@@ -274,7 +274,7 @@ var dm3c = new function() {
     }
 
     this.get_doctype_impl = function(topic) {
-        return doctype_impls[dm3c.type_cache.get_type(topic.type_uri).js_renderer_class]
+        return doctype_impls[dm3c.type_cache.get(topic.type_uri).js_renderer_class]
     }
 
 
@@ -284,6 +284,8 @@ var dm3c = new function() {
     /**************/
 
 
+
+    // === Topics ===
 
     this.get_value = function(topic, field_uri) {
         var value = topic.properties[field_uri]
@@ -295,15 +297,13 @@ var dm3c = new function() {
         return value
     }
 
-    // ---
-
     /**
      * Returns the label for the topic.
      *
      * FIXME: method to be dropped? We have this logic at server-side
      */
     this.topic_label = function(topic) {
-        var type = dm3c.type_cache.get_type(topic.type_uri)
+        var type = dm3c.type_cache.get(topic.type_uri)
         // if there is a topic_label_field_uri declaration use the content of that field
         var field_uri = type.topic_label_field_uri
         if (field_uri) {
@@ -313,7 +313,14 @@ var dm3c = new function() {
         return topic.properties[type.fields[0].uri] || ""
     }
 
-    // --- Commands ---
+    // === Types ===
+
+    this.reload_types = function() {
+        dm3c.type_cache.clear()
+        load_types()
+    }
+
+    // === Commands ===
 
     this.get_topic_commands = function(topic, context) {
         return get_commands(dm3c.trigger_hook("add_topic_commands", topic), context)
@@ -337,6 +344,7 @@ var dm3c = new function() {
      */
     this.reveal_topic = function(topic_id, do_relate) {
         // error check
+        // FIXME: still required?
         if (!document_exists(topic_id)) {
             alert("Topic " + topic_id + " doesn't exist. Possibly it has been deleted.")
             return
@@ -424,7 +432,7 @@ var dm3c = new function() {
         for (var i = 0; i < type_uris.length; i++) {
             var type_uri = type_uris[i]
             // add type to menu
-            var result = dm3c.trigger_hook("has_create_permission", dm3c.type_cache.get_type(type_uri))
+            var result = dm3c.trigger_hook("has_create_permission", dm3c.type_cache.get(type_uri))
             if (!js.contains(result, false) && !js.contains(EXCLUDE_TYPES_FROM_MENUS, type_uri)) {
                 type_menu.add_item({
                     label: type_label(type_uri),
@@ -437,9 +445,14 @@ var dm3c = new function() {
     }
 
     this.recreate_type_menu = function(menu_id) {
-        var selection = dm3c.ui.menu_item(menu_id).value
-        $("#" + menu_id).replaceWith(dm3c.create_type_menu(menu_id))
-        dm3c.ui.select_menu_item(menu_id, selection)
+        var selection = dm3c.ui.menu_item(menu_id)
+        var menu = dm3c.create_type_menu(menu_id)
+        // $("#" + menu_id).replaceWith(menu.dom)
+        // Note: selection is undefined if the menu has no items.
+        if (selection) {
+            dm3c.ui.select_menu_item(menu_id, selection.value)  // restore selection
+        }
+        return menu
     }
 
     // ---
@@ -556,7 +569,7 @@ var dm3c = new function() {
      */
     this.get_icon_src = function(type_uri) {
         // Note: topic_type is undefined if plugin is deactivated and content still exist.
-        var topic_type = dm3c.type_cache.get_type(type_uri)
+        var topic_type = dm3c.type_cache.get(type_uri)
         if (topic_type && topic_type.icon_src) {
             return topic_type.icon_src
         } else {
@@ -743,7 +756,7 @@ var dm3c = new function() {
         for (var i = 0; i < type_uris.length; i++) {
             var type_uri = type_uris[i]
             var type = dm3c.restc.get_topic_type(type_uri)
-            dm3c.type_cache.add_topic_type(type_uri, type)
+            dm3c.type_cache.put(type_uri, type)
         }
     }
 
@@ -817,10 +830,9 @@ var dm3c = new function() {
         //
         // setup create widget
         var menu = dm3c.create_type_menu("create-type-menu")
-        if (menu.get_item_count()) {
-            $("#create-type-menu-placeholder").replaceWith(menu.dom)
-            dm3c.ui.button("create-button", create_topic_from_menu, "Create", "plus")
-        } else {
+        $("#create-type-menu-placeholder").replaceWith(menu.dom)
+        dm3c.ui.button("create-button", create_topic_from_menu, "Create", "plus")
+        if (!menu.get_item_count()) {
             $("#create-widget").hide()
         }
         //

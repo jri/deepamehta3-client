@@ -6,18 +6,24 @@ function TypeCache() {
 
     // ------------------------------------------------------------------------------------------------------ Public API
 
-    this.add_topic_type = function(type_uri, topic_type) {
+    this.put = function(type_uri, topic_type) {
         topic_types[type_uri] = topic_type
         topic_type_icons[type_uri] = dm3c.create_image(dm3c.get_icon_src(type_uri))
     }
 
-    this.remove_topic_type = function(type_uri) {
+    this.remove = function(type_uri) {
         delete topic_types[type_uri]
+        delete topic_type_icons[type_uri]
+    }
+
+    this.clear = function() {
+        topic_types = {}
+        topic_type_icons = {}
     }
 
     // ---
 
-    this.get_type = function(type_uri) {
+    this.get = function(type_uri) {
         return topic_types[type_uri]
     }
 
@@ -58,10 +64,10 @@ function TypeCache() {
     // ---
 
     this.set_topic_type_uri = function(type_uri, new_type_uri) {
-        var topic_type = topic_types[type_uri]          // lookup type
-        this.remove_topic_type(type_uri)                // remove it from cache
-        topic_type.uri = new_type_uri                   // set new URI
-        this.add_topic_type(new_type_uri, topic_type)   // add to cache again
+        var topic_type = topic_types[type_uri]  // lookup type
+        this.remove(type_uri)                   // remove it from cache
+        topic_type.uri = new_type_uri           // set new URI
+        this.put(new_type_uri, topic_type)      // add to cache again
     }
 
     this.set_topic_type_label = function(type_uri, label) {

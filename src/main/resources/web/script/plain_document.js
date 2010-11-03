@@ -28,7 +28,7 @@ function PlainDocument() {
         render_buttons(topic, "detail-panel-show")
 
         function render_fields() {
-            for (var i = 0, field; field = dm3c.type_cache.get_type(topic.type_uri).fields[i]; i++) {
+            for (var i = 0, field; field = dm3c.type_cache.get(topic.type_uri).fields[i]; i++) {
                 // create renderer
                 if (!field.js_renderer_class) {
                     alert("WARNING (PlainDocument.render_document):\n\nField \"" + field.label +
@@ -83,7 +83,7 @@ function PlainDocument() {
         render_buttons(topic, "detail-panel-edit")
 
         function render_fields() {
-            for (var i = 0, field; field = dm3c.type_cache.get_type(topic.type_uri).fields[i]; i++) {
+            for (var i = 0, field; field = dm3c.type_cache.get(topic.type_uri).fields[i]; i++) {
                 if (!field.editable) {
                     continue
                 }
@@ -137,7 +137,7 @@ function PlainDocument() {
          */
         function read_form_values() {
             var form_values = {}
-            for (var i = 0, field; field = dm3c.type_cache.get_type(topic.type_uri).fields[i]; i++) {
+            for (var i = 0, field; field = dm3c.type_cache.get(topic.type_uri).fields[i]; i++) {
                 if (!field.editable) {
                     continue
                 }
@@ -358,7 +358,7 @@ function PlainDocument() {
 
     function get_field(input_element) {
         var field_uri = input_element.id.substr(6)            // 6 = "field_".length
-        var field = dm3c.type_cache.get_data_field(dm3c.type_cache.get_type(dm3c.selected_topic.type_uri), field_uri)
+        var field = dm3c.type_cache.get_data_field(dm3c.type_cache.get(dm3c.selected_topic.type_uri), field_uri)
         return field
     }
 
