@@ -337,27 +337,13 @@ var dm3c = new function() {
     // === GUI ===
 
     /**
-     * Reveals a topic and optionally relates the selected topic to it.
-     *
-     * @param   do_relate   Optional (boolean): if evaluates to true a relation of type "SEARCH_RESULT"
-     *                      is created between the selected topic and the revealed topic. FIXME: still required?
+     * Reveals a topic that is related to the selected topic.
      */
-    this.reveal_topic = function(topic_id, do_relate) {
-        // error check
-        // FIXME: still required?
-        if (!document_exists(topic_id)) {
-            alert("Topic " + topic_id + " doesn't exist. Possibly it has been deleted.")
-            return
-        }
-        // create relation
-        // FIXME: still required?
-        if (do_relate) {
-            var relation = dm3c.restc.get_relation(dm3c.selected_topic.id, topic_id)
-            if (!relation) {
-                alert("reveal_topic(): create SEARCH_RESULT relation")
-                relation = dm3c.create_relation("SEARCH_RESULT", dm3c.selected_topic.id, topic_id)
-            }
-            dm3c.canvas.add_relation(relation.id, relation.src_topic_id, relation.dst_topic_id)
+    this.reveal_related_topic = function(topic_id) {
+        // reveal relations
+        var relations = dm3c.restc.get_relations(dm3c.selected_topic.id, topic_id)
+        for (var i = 0, rel; rel = relations[i]; i++) {
+            dm3c.canvas.add_relation(rel.id, rel.src_topic_id, rel.dst_topic_id)
         }
         // reveal topic
         dm3c.add_topic_to_canvas(dm3c.restc.get_topic(topic_id), "show")
@@ -678,7 +664,7 @@ var dm3c = new function() {
      */
     function render_topic_anchor(topic, anchor_content) {
         return $("<a>").attr({href: "#"}).append(anchor_content).click(function() {
-            dm3c.reveal_topic(topic.id, true)
+            dm3c.reveal_related_topic(topic.id)
             return false
         })
     }
@@ -741,12 +727,6 @@ var dm3c = new function() {
             }
         }
         return commands
-    }
-
-    // --- DB ---
-
-    function document_exists(topic_id) {
-        return dm3c.restc.get_topic(topic_id) != null
     }
 
     // --- Types ---

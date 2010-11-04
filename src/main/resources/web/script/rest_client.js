@@ -2,7 +2,7 @@ function RESTClient(core_service_uri) {
 
     var LOG_AJAX_REQUESTS = false
 
-    // --- Topics ---
+    // === Topics ===
 
     this.get_topic = function(topic_id) {
         return request("GET", "/topic/" + topic_id)
@@ -66,7 +66,7 @@ function RESTClient(core_service_uri) {
         request("DELETE", "/topic/" + id)
     }
 
-    // --- Relations ---
+    // === Relations ===
 
     /**
      * Returns the relation between two topics.
@@ -84,6 +84,21 @@ function RESTClient(core_service_uri) {
         return request("GET", "/relation" + params.to_query_string())
     }
 
+    /**
+     * Returns the relations between two topics.
+     * If no such relation exists an empty array is returned.
+     *
+     * @param   type_id     Relation type filter (optional). Pass <code>null</code> to switch filter off.
+     * @param   isDirected  Direction filter (optional). Pass <code>true</code> if direction matters. In this case the
+     *                      relation is expected to be directed <i>from</i> source topic <i>to</i> destination topic.
+     *
+     * @return  An array of relations.
+     */
+    this.get_relations = function(src_topic_id, dst_topic_id, type_id, is_directed) {
+        var params = new RequestParameter({src: src_topic_id, dst: dst_topic_id, type: type_id, directed: is_directed})
+        return request("GET", "/relation/multiple" + params.to_query_string())
+    }
+
     this.create_relation = function(relation) {
         return request("POST", "/relation", relation)
     }
@@ -96,7 +111,7 @@ function RESTClient(core_service_uri) {
         request("DELETE", "/relation/" + id)
     }
 
-    // --- Types ---
+    // === Types ===
 
     this.get_topic_type_uris = function() {
         return request("GET", "/topictype")
@@ -127,13 +142,13 @@ function RESTClient(core_service_uri) {
             "/field/" + encodeURIComponent(field_uri))
     }
 
-    // --- Commands ---
+    // === Commands ===
 
     this.execute_command = function(command, params) {
         return request("POST", "/command/" + encodeURIComponent(command), params)
     }
 
-    // --- Plugins ---
+    // === Plugins ===
 
     this.get_plugins = function() {
         return request("GET", "/plugin")
@@ -157,7 +172,7 @@ function RESTClient(core_service_uri) {
         return new RequestParameter(params)
     }
 
-    // --- Private Helpers ---
+    // === Private Helpers ===
 
     /**
      * Sends an AJAX request.
