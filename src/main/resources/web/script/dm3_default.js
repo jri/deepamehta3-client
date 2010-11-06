@@ -29,8 +29,7 @@ function dm3_default () {
         commands.push({label: "Hide",   handler: do_hide,   context: "context-menu"})
         commands.push({label: "Relate", handler: do_relate, context: "context-menu"})
         //
-        var result = dm3c.trigger_hook("has_write_permission", topic)
-        if (!js.contains(result, false)) {
+        if (dm3c.has_write_permission(topic)) {
             commands.push({label: "Edit",   handler: do_edit,    context: "detail-panel-show", ui_icon: "pencil"})
             commands.push({label: "Delete", handler: do_confirm, context: "detail-panel-show", ui_icon: "trash"})
         }

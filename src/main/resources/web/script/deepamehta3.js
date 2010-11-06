@@ -334,6 +334,18 @@ var dm3c = new function() {
         return get_commands(dm3c.trigger_hook("add_canvas_commands"), context)
     }
 
+    // === Persmissions ===
+
+    this.has_write_permission = function(topic) {
+        var result = dm3c.trigger_hook("has_write_permission", topic)
+        return !js.contains(result, false)
+    }
+
+    this.has_create_permission = function(type_uri) {
+        var result = dm3c.trigger_hook("has_create_permission", dm3c.type_cache.get(type_uri))
+        return !js.contains(result, false)
+    }
+
     // === GUI ===
 
     /**
@@ -417,9 +429,8 @@ var dm3c = new function() {
         var type_uris = dm3c.type_cache.get_type_uris()
         for (var i = 0; i < type_uris.length; i++) {
             var type_uri = type_uris[i]
-            // add type to menu
-            var result = dm3c.trigger_hook("has_create_permission", dm3c.type_cache.get(type_uri))
-            if (!js.contains(result, false) && !js.contains(EXCLUDE_TYPES_FROM_MENUS, type_uri)) {
+            if (dm3c.has_create_permission(type_uri) && !js.contains(EXCLUDE_TYPES_FROM_MENUS, type_uri)) {
+                // add type to menu
                 type_menu.add_item({
                     label: type_label(type_uri),
                     value: type_uri,
@@ -433,10 +444,10 @@ var dm3c = new function() {
     this.recreate_type_menu = function(menu_id) {
         var selection = dm3c.ui.menu_item(menu_id)
         var menu = dm3c.create_type_menu(menu_id)
-        // $("#" + menu_id).replaceWith(menu.dom)
+        // restore selection
         // Note: selection is undefined if the menu has no items.
         if (selection) {
-            dm3c.ui.select_menu_item(menu_id, selection.value)  // restore selection
+            dm3c.ui.select_menu_item(menu_id, selection.value)
         }
         return menu
     }

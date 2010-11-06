@@ -122,7 +122,8 @@ function UIHelper() {
      *                      reasonable in case of stateful select-like menus.
      * @param   items       Optional: The menu items (an array of objects with "value" and "label" elements).
      *                      If not specified the DOM element specified by menu_id is expected to be a <select> element.
-     *                      Its <option> elements are taken as menu items.
+     *                      Its <option> elements are taken as menu items. If there are no <select> <option> elements,
+     *                      the menu will be created with no items (items are expected to be added later on).
      * @param   menu_title  Optional: The menu title (string).
      *                      If specified a stateless action-trigger menu with a static menu title is created.
      *                      If not specified a stateful select-like menu is created with the selected item as
@@ -186,6 +187,10 @@ function UIHelper() {
                 remove_selection()
             }
 
+            /**
+             * @param   item_value      Value of the menu item to select.
+             *                          If there is not such menu item nothing is performed.
+             */
             this.select = function(item_value) {
                 select_item(find_item(item_value))
             }
@@ -200,7 +205,8 @@ function UIHelper() {
             }
 
             /**
-             * Returns the selected menu item or undefined/null if this menu has no items.
+             * Returns the selected menu item.
+             * If the menu has no items yet, undefined/null is returned.
              */
             this.get_selection = function() {
                 return selection
@@ -375,9 +381,8 @@ function UIHelper() {
 
 
             /**
-             * Finds the menu item with the provided value.
-             *
-             * @return  the found item or undefined
+             * Finds a menu item by value.
+             * If there is not such menu item undefined is returned.
              */
             function find_item(value, func) {
                 for (var i = 0, item; item = items[i]; i++) {
