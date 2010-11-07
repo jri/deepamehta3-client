@@ -116,11 +116,11 @@ function UIHelper() {
      *                      If no such DOM element exists, the caller is responsible for adding the menu to the
      *                      DOM tree.
      * @param   handler     Optional: The callback function. 2 arguments are passed to it:
-     *                      1) The selected menu item (an object with "value" and "label" elements).
+     *                      1) The selected menu item (an object with "value" and "label" properties).
      *                      2) The menu ID.
      *                      If not specified your application can not react on the menu selection, which is
      *                      reasonable in case of stateful select-like menus.
-     * @param   items       Optional: The menu items (an array of objects with "value" and "label" elements).
+     * @param   items       Optional: The menu items (an array of objects with "value" and "label" properties).
      *                      If not specified the DOM element specified by menu_id is expected to be a <select> element.
      *                      Its <option> elements are taken as menu items. If there are no <select> <option> elements,
      *                      the menu will be created with no items (items are expected to be added later on).
@@ -141,7 +141,7 @@ function UIHelper() {
             // Model
             // Note: the surrounding "menu_id", "handler", "items", and "menu_title" are also part of the menu's model.
             var stateful = !menu_title
-            var selection   // selected item (object with "value" and "label" elements). Used only for stateful
+            var selection   // selected item (object with "value" and "label" properties). Used only for stateful
                             // select-like menus.
 
             // GUI
@@ -160,7 +160,7 @@ function UIHelper() {
             // ---------------------------------------------------------------------------------------------- Public API
 
             /**
-             * @param   item    The menu item to add. An object with this elements:
+             * @param   item    The menu item to add. An object with this properties:
              *                      "label" - The label to be displayed in the menu.
              *                      "value" - Optional: the value to be examined by the caller.
              *                          Note: if this item is about to be selected programatically or re-labeled
@@ -252,7 +252,7 @@ function UIHelper() {
             }
 
             /**
-             * @param   item    object with "value" (optional) and "label" elements.
+             * @param   item    object with "value" (optional) and "label" properties.
              */
             function add_item(item) {
                 // 1) update model
@@ -273,7 +273,7 @@ function UIHelper() {
             }
 
             /**
-             * @param   item    object with "value" and "label" elements. If undefined nothing is performed.
+             * @param   item    object with "value" and "label" properties. If undefined nothing is performed.
              */
             function select_item(item) {
                 // Note: only select-like menus have selection state.
@@ -291,7 +291,7 @@ function UIHelper() {
 
             /**
              * @param   anchor      the <a> jQuery object
-             * @return              the menu item (object with "value" and "label" elements)
+             * @return              the menu item (object with "value" and "label" properties)
              */
             function get_item(anchor) {
                 return items[item_id(anchor.attr("id"))]
@@ -382,7 +382,7 @@ function UIHelper() {
 
             /**
              * Finds a menu item by value.
-             * If there is not such menu item undefined is returned.
+             * If there is no such menu item undefined is returned.
              */
             function find_item(value, func) {
                 for (var i = 0, item; item = items[i]; i++) {
@@ -407,7 +407,7 @@ function UIHelper() {
     }
 
     /**
-     * @param   item    object with "value" and "label" elements.
+     * @param   item    object with "value" and "label" properties.
      */
     this.add_menu_item = function(menu_id, item) {
         menus[menu_id].add_item(item)

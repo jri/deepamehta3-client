@@ -31,7 +31,7 @@
                 <configuration>
                     <instructions>
                         <Bundle-Activator>
-                            de.deepamehta.core.service.Plugin
+                            de.deepamehta.plugins.client.ClientPlugin
                         </Bundle-Activator>
                     </instructions>
                 </configuration>
