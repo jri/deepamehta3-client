@@ -29,6 +29,9 @@ function PlainDocument() {
 
         function render_fields() {
             for (var i = 0, field; field = dm3c.type_cache.get(topic.type_uri).fields[i]; i++) {
+                if (!field.viewable) {
+                    continue
+                }
                 // create renderer
                 if (!field.js_renderer_class) {
                     alert("WARNING (PlainDocument.render_document):\n\nField \"" + field.label +
