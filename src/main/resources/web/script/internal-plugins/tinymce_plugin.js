@@ -1,4 +1,4 @@
-function dm3_tinymce() {
+function tinymce_plugin() {
 
     // ------------------------------------------------------------------------------------------------ Overriding Hooks
 

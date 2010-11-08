@@ -1,4 +1,4 @@
-function dm3_default () {
+function default_plugin () {
 
     // ------------------------------------------------------------------------------------------------ Overriding Hooks
 

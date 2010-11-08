@@ -763,7 +763,7 @@ var dm3c = new function() {
 
     // --- register default modules ---
     //
-    register_doctype_renderer("script/plain_document.js")
+    register_doctype_renderer("script/document-renderers/plain_document.js")
     //
     this.register_field_renderer("script/datafield-renderers/text_field_renderer.js")
     this.register_field_renderer("script/datafield-renderers/number_field_renderer.js")
@@ -774,9 +774,9 @@ var dm3c = new function() {
     this.register_field_renderer("script/datafield-renderers/title_renderer.js")
     this.register_field_renderer("script/datafield-renderers/body_text_renderer.js")
     //
-    register_plugin("script/dm3_default.js")
-    register_plugin("script/dm3_fulltext.js")
-    register_plugin("script/dm3_tinymce.js")
+    register_plugin("script/internal-plugins/default_plugin.js")
+    register_plugin("script/internal-plugins/fulltext_plugin.js")
+    register_plugin("script/internal-plugins/tinymce_plugin.js")
 
     var generic_topic_icon = this.create_image(GENERIC_TOPIC_ICON_SRC)
 

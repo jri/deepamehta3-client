@@ -1,4 +1,4 @@
-function dm3_fulltext() {
+function fulltext_plugin() {
 
     dm3c.css_stylesheet("style/search_result.css")
 
