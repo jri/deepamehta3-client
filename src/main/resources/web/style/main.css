@@ -47,7 +47,19 @@ body {
     overflow: auto;
 }
 
-/*** Topic Details ***/
+#detail-panel input[type=text],
+#detail-panel textarea {
+    width: 97%;
+    font-size: 1em;
+}
+
+#detail-panel textarea {
+    /* Firefox: default font in textarea is courier */
+    font-family: "Lucida Grande", Verdana, Arial, Helvetica, sans-serif;
+    line-height: 1.6em;
+}
+
+/*** Detail Panel ***/
 
 .title {
     margin-top: 1em;

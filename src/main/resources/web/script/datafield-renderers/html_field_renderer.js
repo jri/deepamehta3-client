@@ -4,6 +4,7 @@ function HTMLFieldRenderer(doc, field, rel_topics) {
         theme: "advanced",
         content_css: "style/tinymce.css",
         plugins: "autoresize",
+        width: "98%",
         extended_valid_elements: "iframe[align<bottom?left?middle?right?top|class|frameborder|height|id|" +
             "longdesc|marginheight|marginwidth|name|scrolling<auto?no?yes|src|style|title|width]",
         // Theme options
@@ -26,7 +27,7 @@ function HTMLFieldRenderer(doc, field, rel_topics) {
     this.render_form_element = function() {
         var lines = field.lines || DEFAULT_AREA_HEIGHT
         var textarea = $("<textarea>")
-        textarea.attr({id: "field_" + field.uri, rows: lines, cols: DEFAULT_FIELD_WIDTH})
+        textarea.attr({id: "field_" + field.uri, rows: lines})
         textarea.text(dm3c.get_value(doc, field.uri))
         return textarea
     }

@@ -6,8 +6,7 @@ function PlainDocument() {
     var field_renderers         // key: field URI, value: renderer object
 
     // Settings
-    DEFAULT_FIELD_WIDTH = 60    // in chars
-    DEFAULT_AREA_HEIGHT = 30    // in chars
+    DEFAULT_AREA_HEIGHT = 15    // in lines
 
     // The autocomplete list
     $("#document-form").append($("<div>").addClass("autocomplete-list"))

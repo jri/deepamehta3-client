@@ -20,9 +20,7 @@ function TextFieldRenderer(doc, field, rel_topics) {
             return input
         case "multi line":
             var lines = field.lines || DEFAULT_AREA_HEIGHT
-            return $("<textarea>").attr({
-                "field-uri": field.uri, rows: lines, cols: DEFAULT_FIELD_WIDTH
-            }).text(dm3c.get_value(doc, field.uri))
+            return $("<textarea>").attr({"field-uri": field.uri, rows: lines}).text(dm3c.get_value(doc, field.uri))
         default:
             alert("WARNING (TextFieldRenderer.render_form_element):\n\nField \"" + field.label +
                 "\" has unexpected editor: \"" + field.editor + "\".\n\nfield=" + JSON.stringify(field))

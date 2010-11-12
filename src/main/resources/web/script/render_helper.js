@@ -17,8 +17,6 @@ function RenderHelper() {
     }
 
     this.input = function(topic, field) {
-        return $("<input>").attr({
-            type: "text", "field-uri": field.uri, value: dm3c.get_value(topic, field.uri), size: DEFAULT_FIELD_WIDTH
-        })
+        return $("<input>").attr({type: "text", "field-uri": field.uri, value: dm3c.get_value(topic, field.uri)})
     }
 }
