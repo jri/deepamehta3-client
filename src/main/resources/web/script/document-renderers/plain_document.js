@@ -12,9 +12,15 @@ function PlainDocument() {
     $("#document-form").append($("<div>").addClass("autocomplete-list"))
     autocomplete_item = -1
 
-    // ------------------------------------------------------------------------------------------------------ Public API
+    // -------------------------------------------------------------------------------------------------- Public Methods
 
-    // Interface of a document renderer.
+
+
+    // *********************************************************
+    // *** Implementation of the document renderer interface ***
+    // *********************************************************
+
+
 
     this.render_document = function(topic) {
 
@@ -184,7 +190,11 @@ function PlainDocument() {
      * @return  Array of Topic objects.
      */
     function get_relation_field_content(topic_id, field) {
-        return dm3c.restc.get_related_topics(topic_id, [field.ref_topic_type_uri], [], ["SEARCH_RESULT"])
+        if (field.ref_relation_type_id) {
+            return dm3c.restc.get_related_topics(topic_id, [field.ref_topic_type_uri], [field.ref_relation_type_id], [])
+        } else {
+            return dm3c.restc.get_related_topics(topic_id, [field.ref_topic_type_uri], [], ["SEARCH_RESULT"])
+        }
     }
 
     // --- Field Renderer ---
