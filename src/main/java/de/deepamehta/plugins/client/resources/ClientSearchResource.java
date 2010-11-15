@@ -2,8 +2,8 @@ package de.deepamehta.plugins.client.resources;
 
 import de.deepamehta.core.model.RelatedTopic;
 import de.deepamehta.core.model.Topic;
+import de.deepamehta.core.osgi.Activator;
 import de.deepamehta.core.service.CoreService;
-import de.deepamehta.core.service.Plugin;
 import de.deepamehta.core.util.JSONHelper;
 
 import org.codehaus.jettison.json.JSONArray;
@@ -39,7 +39,7 @@ public class ClientSearchResource {
 
     // ---------------------------------------------------------------------------------------------- Instance Variables
 
-    private CoreService dms = Plugin.getService();
+    private CoreService dms = Activator.getService();
 
     private Logger logger = Logger.getLogger(getClass().getName());
 
