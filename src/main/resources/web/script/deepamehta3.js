@@ -315,6 +315,10 @@ var dm3c = new function() {
 
     // === Types ===
 
+    this.type_label = function(type_uri) {
+        return dm3c.type_cache.get_label(type_uri)
+    }
+
     this.reload_types = function() {
         dm3c.type_cache.clear()
         load_types()
@@ -330,8 +334,8 @@ var dm3c = new function() {
         return get_commands(dm3c.trigger_hook("add_relation_commands", relation), context)
     }
 
-    this.get_canvas_commands = function(context) {
-        return get_commands(dm3c.trigger_hook("add_canvas_commands"), context)
+    this.get_canvas_commands = function(cx, cy, context) {
+        return get_commands(dm3c.trigger_hook("add_canvas_commands", cx, cy), context)
     }
 
     // === Persmissions ===
@@ -363,6 +367,20 @@ var dm3c = new function() {
     }
 
     /**
+     * @param   x, y        Optional: the coordinates for placing the topic on the canvas.
+     *                      If not specified, placement is up to the canvas.
+     */
+    this.create_topic_from_menu = function(type_uri, x, y) {
+        // 1) update DB
+        var topic = dm3c.trigger_hook("custom_create_topic", type_uri)[0]
+        if (!topic) {
+            topic = dm3c.create_topic(type_uri)
+        }
+        // 2) update GUI
+        dm3c.add_topic_to_canvas(topic, "edit", x, y)
+    }
+
+    /**
      * Adds a topic to the canvas, and refreshes the detail panel according to the specified action.
      *
      * High-level utility method for plugin developers.
@@ -373,12 +391,14 @@ var dm3c = new function() {
      *                      "none" - do not select the topic (detail panel doesn't change) -- the default.
      *                      "show" - select the topic and show its info in the detail panel.
      *                      "edit" - select the topic and show its form in the detail panel.
+     * @param   x, y        Optional: the coordinates for placing the topic on the canvas.
+     *                      If not specified, placement is up to the canvas.
      */
-    this.add_topic_to_canvas = function(topic, action) {
+    this.add_topic_to_canvas = function(topic, action, x, y) {
         action = action || "none"   // set default
         // update canvas
         var highlight = action != "none"
-        dm3c.canvas.add_topic(topic.id, topic.type_uri, dm3c.topic_label(topic), highlight, true)
+        dm3c.canvas.add_topic(topic.id, topic.type_uri, dm3c.topic_label(topic), highlight, true, x, y)
         // update detail panel
         switch (action) {
         case "none":
@@ -432,7 +452,7 @@ var dm3c = new function() {
             if (dm3c.has_create_permission(type_uri) && !js.contains(EXCLUDE_TYPES_FROM_MENUS, type_uri)) {
                 // add type to menu
                 type_menu.add_item({
-                    label: type_label(type_uri),
+                    label: dm3c.type_label(type_uri),
                     value: type_uri,
                     icon: dm3c.get_icon_src(type_uri)
                 })
@@ -646,17 +666,6 @@ var dm3c = new function() {
         return false
     }
 
-    function create_topic_from_menu() {
-        var type_uri = dm3c.ui.menu_item("create-type-menu").value
-        // 1) update DB
-        var topic = dm3c.trigger_hook("custom_create_topic", type_uri)[0]
-        if (!topic) {
-            topic = dm3c.create_topic(type_uri)
-        }
-        // 2) update GUI
-        dm3c.add_topic_to_canvas(topic, "edit")
-    }
-
     // --- Special Menu ---
 
     function create_special_select() {
@@ -751,10 +760,6 @@ var dm3c = new function() {
         }
     }
 
-    function type_label(type_uri) {
-        return dm3c.type_cache.get_label(type_uri)
-    }
-
     function notify_image_trackers() {
         image_tracker && image_tracker.check()
     }
@@ -822,7 +827,7 @@ var dm3c = new function() {
         // setup create widget
         var menu = dm3c.create_type_menu("create-type-menu")
         $("#create-type-menu-placeholder").replaceWith(menu.dom)
-        dm3c.ui.button("create-button", create_topic_from_menu, "Create", "plus")
+        dm3c.ui.button("create-button", do_create_topic, "Create", "plus")
         if (!menu.get_item_count()) {
             $("#create-widget").hide()
         }
@@ -897,6 +902,11 @@ var dm3c = new function() {
                 if (LOG_PLUGIN_LOADING) dm3c.log("..... " + css_stylesheet)
                 $("head").append($("<link>").attr({rel: "stylesheet", href: css_stylesheet, type: "text/css"}))
             }
+        }
+
+        function do_create_topic() {
+            var type_uri = dm3c.ui.menu_item("create-type-menu").value
+            dm3c.create_topic_from_menu(type_uri)
         }
 
         function window_resized() {

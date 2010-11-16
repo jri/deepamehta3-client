@@ -460,7 +460,9 @@ function Canvas() {
             draw()
             var commands = dm3c.get_relation_commands(ca, "context-menu")
         } else {
-            var commands = dm3c.get_canvas_commands("context-menu")
+            var x = cx(event, true)
+            var y = cy(event, true)
+            var commands = dm3c.get_canvas_commands(x, y, "context-menu")
         }
         //
         open_context_menu(commands, event)
@@ -671,22 +673,28 @@ function Canvas() {
         }
     }
 
-    function cx(event, consider_translation) {
+    /**
+     * Returns the x coordinate of the mouse event.
+     *
+     * @as_canvas_coordinate    false: returned as screen coordinate.
+     *                          true: returned as canvas coordinate (involves canvas viewport).
+     */
+    function cx(event, as_canvas_coordinate) {
         if ($(event.target).hasClass("canvas-topic-label")) {
             var offset = $(event.target).position().left
         } else {
             var offset = 0
         }
-        return event.layerX + (consider_translation ? -trans_x : 0) + offset
+        return event.layerX + (as_canvas_coordinate ? -trans_x : 0) + offset
     }
 
-    function cy(event, consider_translation) {
+    function cy(event, as_canvas_coordinate) {
         if ($(event.target).hasClass("canvas-topic-label")) {
             var offset = $(event.target).position().top
         } else {
             var offset = 0
         }
-        return event.layerY + (consider_translation ? -trans_y : 0) + offset
+        return event.layerY + (as_canvas_coordinate ? -trans_y : 0) + offset
     }
 
     // ------------------------------------------------------------------------------------------------- Private Classes

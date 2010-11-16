@@ -90,4 +90,22 @@ function default_plugin () {
             $("#delete-relation-dialog").dialog("open")
         }
     }
+
+    this.add_canvas_commands = function(cx, cy) {
+        var commands = []
+        var type_item = dm3c.ui.menu_item("create-type-menu")
+        // Note: if the user has no create permission the type menu is empty (no items).
+        if (type_item) {
+            var type_uri = type_item.value
+            var type_label = dm3c.type_label(type_uri)
+            commands.push({
+                label: "Create " + type_label, handler: do_create, context: "context-menu"
+            })
+        }
+        return commands
+
+        function do_create() {
+            dm3c.create_topic_from_menu(type_uri, cx, cy)
+        }
+    }
 }

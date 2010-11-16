@@ -206,7 +206,7 @@ function UIHelper() {
 
             /**
              * Returns the selected menu item.
-             * If the menu has no items yet, undefined/null is returned.
+             * If the menu has no items, undefined/null is returned.
              */
             this.get_selection = function() {
                 return selection
@@ -430,7 +430,8 @@ function UIHelper() {
     }
 
     /**
-     * Returns the selected menu item or undefined/null if the menu has no items.
+     * Returns the selected menu item.
+     * If the menu has no items, undefined/null is returned.
      */
     this.menu_item = function(menu_id) {
         return menus[menu_id].get_selection()
