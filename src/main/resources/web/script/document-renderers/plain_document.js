@@ -58,7 +58,7 @@ function PlainDocument() {
 
             function related_topics(field) {
                 if (field.data_type == "reference") {
-                    var topics = get_relation_field_content(topic.id, field)
+                    var topics = get_reference_field_content(topic.id, field)
                     defined_relation_topics = defined_relation_topics.concat(topics)
                     return topics
                 }
@@ -118,7 +118,7 @@ function PlainDocument() {
 
             function related_topics(field) {
                 if (field.data_type == "reference") {
-                    var topics = get_relation_field_content(topic.id, field)
+                    var topics = get_reference_field_content(topic.id, field)
                     // buffer current topic selection to compare it at submit time
                     plain_doc.topic_buffer[field.uri] = topics
                     //
@@ -185,16 +185,27 @@ function PlainDocument() {
     }
 
     /**
-     * Returns the content of a field of type "reference".
+     * Returns the content of a "reference" data field.
      *
      * @return  Array of Topic objects.
      */
-    function get_relation_field_content(topic_id, field) {
-        if (field.ref_relation_type_id) {
-            return dm3c.restc.get_related_topics(topic_id, [field.ref_topic_type_uri], [field.ref_relation_type_id], [])
-        } else {
-            return dm3c.restc.get_related_topics(topic_id, [field.ref_topic_type_uri], [], ["SEARCH_RESULT"])
+    function get_reference_field_content(topic_id, field) {
+        // set topic type filter
+        var include_topic_types = []
+        if (field.ref_topic_type_uri) {
+            include_topic_types.push(field.ref_topic_type_uri)
         }
+        // set relation type filter
+        if (field.ref_relation_type_id) {
+            var include_relation_types = [field.ref_relation_type_id]
+            var exclude_relation_types = []
+        } else {
+            var include_relation_types = []
+            var exclude_relation_types = ["SEARCH_RESULT"]
+        }
+        //
+        return dm3c.restc.get_related_topics(topic_id, include_topic_types,
+                                                       include_relation_types, exclude_relation_types)
     }
 
     // --- Field Renderer ---
