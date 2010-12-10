@@ -362,7 +362,7 @@ var dm3c = new function() {
             dm3c.canvas.add_relation(rel.id, rel.src_topic_id, rel.dst_topic_id)
         }
         // reveal topic
-        dm3c.add_topic_to_canvas(dm3c.restc.get_topic(topic_id), "show")
+        dm3c.add_topic_to_canvas(dm3c.restc.get_topic_by_id(topic_id), "show")
         dm3c.canvas.scroll_topic_to_center(topic_id)
     }
 
@@ -431,7 +431,7 @@ var dm3c = new function() {
             }
         }
         // fetch topic
-        var topic = dm3c.restc.get_topic(topic_id)
+        var topic = dm3c.restc.get_topic_by_id(topic_id)
         // update global state
         dm3c.selected_topic = topic
         //

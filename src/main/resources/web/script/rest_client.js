@@ -4,7 +4,7 @@ function RESTClient(core_service_uri) {
 
     // === Topics ===
 
-    this.get_topic = function(topic_id) {
+    this.get_topic_by_id = function(topic_id) {
         return request("GET", "/topic/" + topic_id)
     }
 
@@ -19,6 +19,11 @@ function RESTClient(core_service_uri) {
      */
     this.get_topic_by_property = function(key, value) {
         return request("GET", "/topic/by_property/" + encodeURIComponent(key) + "/" + encodeURIComponent(value))
+    }
+
+    this.get_topic = function(type_uri, key, value) {
+        return request("GET", "/topic/" + encodeURIComponent(type_uri) + "/" +
+            encodeURIComponent(key) + "/" + encodeURIComponent(value))
     }
 
     this.get_topics = function(type_uri) {
