@@ -66,8 +66,11 @@ var dm3c = new function() {
             type_uri: type_uri,
             properties: properties || {}
         }
-        // FIXME: "create" hooks are not triggered
-        return dm3c.restc.create_topic(topic)
+        topic = dm3c.restc.create_topic(topic)
+        // trigger hook
+        dm3c.trigger_hook("post_create_topic", topic)
+        //
+        return topic
     }
 
     /**
