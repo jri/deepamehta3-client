@@ -4,10 +4,7 @@ function ReferenceFieldRenderer(doc, field, rel_topics) {
         // field label
         dm3c.render.field_label(field)
         // field value
-        switch (field.editor) {
-        case "checkboxes":
-            return dm3c.render_topic_list(rel_topics)
-        }
+        return dm3c.render_topic_list(rel_topics)
     }
 
     this.render_form_element = function() {
